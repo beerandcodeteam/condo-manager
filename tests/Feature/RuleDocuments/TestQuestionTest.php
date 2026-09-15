@@ -127,6 +127,21 @@ test('the question is required', function () {
     Embeddings::assertNothingGenerated();
 });
 
+test('a question longer than the maximum length is rejected without calling embeddings', function () {
+    Embeddings::fake();
+    RuleDocument::factory()->publicado()->for($this->condominium)->create();
+
+    actingInPanel($this->sindico);
+
+    Livewire::test('pages::rule-documents')
+        ->set('testQuestion', str_repeat('a', config('condo.rag.max_query_length') + 1))
+        ->call('askQuestion')
+        ->assertHasErrors(['testQuestion' => 'max'])
+        ->assertSet('testResult', null);
+
+    Embeddings::assertNothingGenerated();
+});
+
 test('without a published document it shows the warning, disables the button and does not call embeddings', function () {
     Embeddings::fake();
 

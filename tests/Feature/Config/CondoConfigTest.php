@@ -19,6 +19,7 @@ test('condo config exposes domain defaults', function () {
             'min_similarity' => 0.5,
             'default_limit' => 5,
             'max_limit' => 10,
+            'max_query_length' => 2000,
             'embedding_dimensions' => 1536,
         ])
         ->and(config('condo.tickets'))->toBe([

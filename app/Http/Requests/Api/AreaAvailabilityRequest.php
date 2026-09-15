@@ -18,12 +18,14 @@ class AreaAvailabilityRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * The date lower bound keeps it inside the Postgres date range (`date_format` accepts year 0000).
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'date' => ['required', 'string', 'date_format:Y-m-d'],
+            'date' => ['required', 'string', 'date_format:Y-m-d', 'after_or_equal:0001-01-01'],
         ];
     }
 

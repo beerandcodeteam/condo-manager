@@ -9,12 +9,15 @@ use App\Support\ToolCallContext;
 use Illuminate\Http\JsonResponse;
 
 /**
- * GET /api/v1/notices — every active notice of the token's condominium, most recently updated first.
- * No search or filter: query parameters are ignored.
+ * Notices of the token's condominium, for the agent tool `consultar_comunicados`.
  */
-class NoticeListController extends Controller
+class NoticeController extends Controller
 {
-    public function __invoke(CurrentCondominium $currentCondominium, ToolCallContext $toolCallContext): JsonResponse
+    /**
+     * GET /api/v1/notices — every active notice of the token's condominium, most recently updated first.
+     * No search or filter: query parameters are ignored.
+     */
+    public function index(CurrentCondominium $currentCondominium, ToolCallContext $toolCallContext): JsonResponse
     {
         $notices = $currentCondominium->getOrFail()
             ->notices()

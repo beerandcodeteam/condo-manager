@@ -123,7 +123,7 @@ test('missing or invalid date responds 422', function (?string $date) {
         ->assertUnprocessable()
         ->assertJsonPath('code', 'validation_error')
         ->assertJsonValidationErrors(['date']);
-})->with([null, '27/09/2026', '2026-02-30', '2026-9-7']);
+})->with([null, '27/09/2026', '2026-02-30', '2026-9-7', 'year zero outside the database range' => '0000-01-01']);
 
 test('deleted slots do not appear in the availability', function () {
     $this->daySlot->delete();

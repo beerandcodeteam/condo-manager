@@ -30,4 +30,16 @@ class TicketListRequest extends FormRequest
             'status' => ['nullable', 'string', Rule::in(TicketService::API_STATUS_FILTERS)],
         ];
     }
+
+    /**
+     * Get custom messages for validator errors; enum errors list the accepted values so the agent can retry.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'status.in' => 'O status deve ser '.implode(', ', TicketService::API_STATUS_FILTERS).'.',
+        ];
+    }
 }

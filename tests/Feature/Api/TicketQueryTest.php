@@ -78,7 +78,7 @@ test('status filters open, closed and all with all as default and invalid values
         ->getJson(route('api.v1.tickets_list', ['phone' => '+5511999990000', 'status' => 'pending']))
         ->assertUnprocessable()
         ->assertJsonPath('code', 'validation_error')
-        ->assertJsonValidationErrors(['status']);
+        ->assertJsonValidationErrors(['status' => 'O status deve ser open, closed, all.']);
 });
 
 test('the list returns at most 10 tickets, most recent first', function () {
@@ -166,6 +166,47 @@ test('a protocol of another unit, another condominium or unknown responds 404 ti
 
     expect($toolCall->tool_call_result_id)->toBe(ToolCallResult::idFor(ToolCallResult::RECUSA))
         ->and($toolCall->error_code)->toBe('ticket_not_found');
+});
+
+test('a protocol that is not a protocol number responds 404 ticket_not_found and is logged', function (string $protocol) {
+    $this->withToken($this->token)
+        ->getJson('/api/v1/tickets/'.rawurlencode($protocol).'?phone=%2B5511999990000')
+        ->assertNotFound()
+        ->assertJsonPath('code', 'ticket_not_found');
+
+    expect(AgentToolCall::query()->withoutGlobalScopes()->sole())
+        ->agent_tool_id->toBe(AgentTool::idFor(AgentTool::TICKETS_SHOW))
+        ->tool_call_result_id->toBe(ToolCallResult::idFor(ToolCallResult::RECUSA))
+        ->resident_id->toBe($this->resident->id)
+        ->http_status->toBe(404)
+        ->error_code->toBe('ticket_not_found');
+})->with([
+    'not numeric' => ['abc'],
+    'digits with letters' => ['4821abc'],
+    'out of range' => ['9999999999'],
+    'only the hash sign' => ['#'],
+]);
+
+test('a protocol prefixed with # finds the ticket', function () {
+    $ticket = Ticket::factory()->for($this->resident)->create();
+
+    $this->withToken($this->token)
+        ->getJson('/api/v1/tickets/'.rawurlencode('#'.$ticket->protocol_number).'?phone=%2B5511999990000')
+        ->assertOk()
+        ->assertJsonPath('protocol', $ticket->protocol_number);
+});
+
+test('an unknown resident takes precedence over a non-numeric protocol', function () {
+    $this->withToken($this->token)
+        ->getJson(route('api.v1.tickets_show', ['protocol' => 'abc', 'phone' => '+5511900000000']))
+        ->assertForbidden()
+        ->assertJsonPath('code', 'resident_not_found');
+});
+
+test('a non-numeric protocol without a token responds 401', function () {
+    $this->getJson(route('api.v1.tickets_show', ['protocol' => 'abc', 'phone' => '+5511999990000']))
+        ->assertUnauthorized()
+        ->assertJsonPath('code', 'unauthenticated');
 });
 
 test('unknown resident responds 403 on list and detail', function () {

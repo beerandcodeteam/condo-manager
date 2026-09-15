@@ -8,9 +8,16 @@ class PhoneNumber
 
     /**
      * Normalize a phone number to E.164, returning null when the result is not a valid E.164 number.
+     *
+     * An unencoded "+" in a query string (`?phone=+5511999990000`) arrives decoded as a space, so leading
+     * spaces followed only by an E.164 body are read as the "+" sign.
      */
     public static function normalize(string $phone): ?string
     {
+        if (preg_match('/^ +[1-9]\d{7,14}$/', $phone) === 1) {
+            $phone = '+'.ltrim($phone, ' ');
+        }
+
         $normalized = str_replace([' ', '.', '-', '(', ')'], '', trim($phone));
 
         return preg_match(self::E164_PATTERN, $normalized) === 1 ? $normalized : null;

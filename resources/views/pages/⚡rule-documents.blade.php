@@ -170,7 +170,7 @@ new #[Layout('layouts::app')] #[Title('Regimento')] class extends Component
         $this->authorize('knowledge.manage');
 
         $validated = $this->validate([
-            'testQuestion' => ['required', 'string'],
+            'testQuestion' => ['required', 'string', 'max:'.config('condo.rag.max_query_length')],
         ], attributes: [
             'testQuestion' => 'pergunta',
         ]);

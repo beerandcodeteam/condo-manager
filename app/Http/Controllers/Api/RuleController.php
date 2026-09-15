@@ -10,12 +10,15 @@ use App\Support\ToolCallContext;
 use Illuminate\Http\JsonResponse;
 
 /**
- * POST /api/v1/rules/search — articles of the published regimento/convenção of the token's condominium
- * that answer the question, most similar first. No result above the threshold responds `results: []`.
+ * Regimento and convenção of the token's condominium, for the agent tool `consultar_regimento`.
  */
-class RuleSearchController extends Controller
+class RuleController extends Controller
 {
-    public function __invoke(RuleSearchRequest $request, RuleSearchService $ruleSearchService, ToolCallContext $toolCallContext): JsonResponse
+    /**
+     * POST /api/v1/rules/search — articles of the published regimento/convenção of the token's condominium
+     * that answer the question, most similar first. No result above the threshold responds `results: []`.
+     */
+    public function search(RuleSearchRequest $request, RuleSearchService $ruleSearchService, ToolCallContext $toolCallContext): JsonResponse
     {
         $results = $ruleSearchService->search($request->string('query')->trim()->toString(), $request->resultLimit())['results'];
 

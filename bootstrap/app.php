@@ -3,6 +3,7 @@
 use App\Exceptions\Api\ApiException;
 use App\Http\Middleware\EnsureCondominiumToken;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsureValidTextInput;
 use App\Http\Middleware\LogToolCall;
 use App\Http\Middleware\SetApiCondominium;
 use App\Http\Middleware\SetPanelCondominium;
@@ -29,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('dashboard'));
 
+        // An unencoded "+" in `?phone=+55...` is decoded as a leading space; PhoneNumber::normalize() restores it.
+        $middleware->trimStrings(except: ['phone']);
+
         $middleware->alias([
             'panel.condominium' => SetPanelCondominium::class,
         ]);
@@ -43,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureCondominiumToken::class,
             SetApiCondominium::class,
             LogToolCall::class,
+            EnsureValidTextInput::class,
         ]);
 
         $middleware->prependToPriorityList(
@@ -108,7 +113,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             $debug = app()->environment('local') && config('app.debug') ? [
                 'exception' => $exception::class,
-                'detail' => $exception->getMessage(),
+                'detail' => mb_scrub($exception->getMessage(), 'UTF-8'),
                 'file' => $exception->getFile(),
                 'line' => $exception->getLine(),
                 'trace' => collect($exception->getTrace())->map(fn (array $frame) => Arr::except($frame, ['args']))->all(),

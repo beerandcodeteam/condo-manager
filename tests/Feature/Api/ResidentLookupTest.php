@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AgentToolCall;
 use App\Models\Block;
 use App\Models\Condominium;
 use App\Models\Resident;
@@ -26,6 +27,18 @@ test('active resident responds with the exact resident and unit format', functio
             'resident' => ['id' => $resident->id, 'name' => 'Ana Souza', 'phone' => '+5511999990000'],
             'unit' => ['id' => $unit->id, 'number' => '101', 'block' => 'B'],
         ]);
+});
+
+test('an unencoded plus sign in the query string is accepted as the documented example', function () {
+    $resident = Resident::factory()->for($this->condominium)->create(['phone' => '+5511999990000']);
+
+    $this->withToken($this->token)
+        ->getJson('/api/v1/residents/lookup?phone=+5511999990000')
+        ->assertOk()
+        ->assertJsonPath('exists', true)
+        ->assertJsonPath('resident.id', $resident->id);
+
+    expect(AgentToolCall::query()->withoutGlobalScopes()->sole()->phone)->toBe('+5511999990000');
 });
 
 test('unit without block responds with null block', function () {

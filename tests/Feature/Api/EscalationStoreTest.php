@@ -74,6 +74,52 @@ test('summary and phone are required and ticket_protocol must be an integer', fu
     expect(Escalation::query()->withoutGlobalScopes()->count())->toBe(0);
 });
 
+test('a boolean ticket_protocol responds 422 validation_error instead of being read as protocol 1', function () {
+    Ticket::factory()->for($this->resident)->create(['protocol_number' => 1]);
+
+    $this->withToken($this->token)
+        ->postJson(route('api.v1.escalations_create'), [
+            'phone' => '+5511999990000',
+            'reason' => 'pediu_humano',
+            'summary' => 'Quer falar sobre o chamado',
+            'ticket_protocol' => true,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'validation_error')
+        ->assertJsonValidationErrors(['ticket_protocol']);
+
+    expect(Escalation::query()->withoutGlobalScopes()->count())->toBe(0);
+});
+
+test('a numeric string ticket_protocol is still linked', function () {
+    $ticket = Ticket::factory()->for($this->resident)->create();
+
+    $this->withToken($this->token)
+        ->postJson(route('api.v1.escalations_create'), [
+            'phone' => '+5511999990000',
+            'reason' => 'pediu_humano',
+            'summary' => 'Quer falar sobre o chamado',
+            'ticket_protocol' => (string) $ticket->protocol_number,
+        ])
+        ->assertCreated();
+
+    expect(Escalation::query()->withoutGlobalScopes()->sole()->ticket_id)->toBe($ticket->id);
+});
+
+test('a summary with a NUL character responds 422 validation_error instead of being truncated', function () {
+    $this->withToken($this->token)
+        ->postJson(route('api.v1.escalations_create'), [
+            'phone' => '+5511999990000',
+            'reason' => 'sem_regra',
+            'summary' => "abc\0def",
+        ])
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'validation_error')
+        ->assertJsonValidationErrors(['summary']);
+
+    expect(Escalation::query()->withoutGlobalScopes()->count())->toBe(0);
+});
+
 test('unknown or inactive resident responds 403 resident_not_found', function (string $phone) {
     Resident::factory()->inactive()->for($this->condominium)->create(['phone' => '+5511988887777']);
     Resident::factory()->for(Condominium::factory())->create(['phone' => '+5511977776666']);

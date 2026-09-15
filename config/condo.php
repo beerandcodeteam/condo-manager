@@ -24,6 +24,7 @@ return [
         'min_similarity' => (float) env('RAG_MIN_SIMILARITY', 0.5),
         'default_limit' => 5,
         'max_limit' => 10,
+        'max_query_length' => (int) env('RAG_MAX_QUERY_LENGTH', 2000),
         'embedding_dimensions' => 1536,
     ],
 

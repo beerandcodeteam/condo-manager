@@ -18,13 +18,16 @@ class RuleSearchRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * `numeric` rejects a JSON boolean `limit`, which `integer` alone accepts as 1; `query` is capped below the
+     * embedding provider input limit.
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'query' => ['required', 'string'],
-            'limit' => ['nullable', 'integer', 'min:1', 'max:'.config('condo.rag.max_limit')],
+            'query' => ['required', 'string', 'max:'.config('condo.rag.max_query_length')],
+            'limit' => ['nullable', 'numeric', 'integer', 'min:1', 'max:'.config('condo.rag.max_limit')],
         ];
     }
 

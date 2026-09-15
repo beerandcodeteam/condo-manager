@@ -19,15 +19,18 @@ class ReservationStoreRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * `numeric` rejects JSON boolean ids, which `integer` alone accepts as 1; the date lower bound keeps it inside
+     * the Postgres date range.
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'phone' => ['required', 'string', new E164Phone],
-            'area_id' => ['required', 'integer', 'min:1'],
-            'slot_id' => ['required', 'integer', 'min:1'],
-            'date' => ['required', 'string', 'date_format:Y-m-d'],
+            'area_id' => ['required', 'numeric', 'integer', 'min:1'],
+            'slot_id' => ['required', 'numeric', 'integer', 'min:1'],
+            'date' => ['required', 'string', 'date_format:Y-m-d', 'after_or_equal:0001-01-01'],
         ];
     }
 
