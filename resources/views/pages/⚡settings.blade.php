@@ -28,4 +28,10 @@ new #[Layout('layouts::app')] #[Title('Configurações')] class extends Componen
             <livewire:settings.webhook />
         @endcan
     </div>
+
+    @can('webhooks.failures')
+        <div class="col-span-2 min-w-0">
+            <livewire:settings.webhook-failures />
+        </div>
+    @endcan
 </div>

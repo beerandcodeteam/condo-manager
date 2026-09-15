@@ -7,6 +7,7 @@ use App\Http\Middleware\SetPanelCondominium;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Tenancy\CurrentCondominium;
+use App\Support\ToolCallContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(CurrentCondominium::class);
+        $this->app->scoped(ToolCallContext::class);
     }
 
     /**
