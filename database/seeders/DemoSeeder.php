@@ -56,7 +56,7 @@ class DemoSeeder extends Seeder
         DB::transaction(fn () => Model::unguarded(function (): void {
             User::create([
                 'name' => 'Super Admin',
-                'email' => 'admin@example.com',
+                'email' => 'admin@teste.com',
                 'password' => self::PASSWORD,
                 'role_id' => Role::idFor(Role::SUPER_ADMIN),
                 'condominium_id' => null,
@@ -95,8 +95,8 @@ class DemoSeeder extends Seeder
 
     private function seedAurora(Condominium $aurora): void
     {
-        $sindica = $this->createPanelUser($aurora, 'Renata Moura', 'renata@example.com', Role::SINDICO);
-        $zelador = $this->createPanelUser($aurora, 'José Carvalho', 'jose@example.com', Role::ZELADOR);
+        $sindica = $this->createPanelUser($aurora, 'Teste Sindico', 'sindico@teste.com', Role::SINDICO);
+        $zelador = $this->createPanelUser($aurora, 'Teste Zelador', 'zelador@teste.com', Role::ZELADOR);
 
         $residents = $this->seedResidents($aurora);
         $articles = $this->seedRuleDocuments($aurora, $sindica);
