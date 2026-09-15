@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#f5f5f7;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#5a5bd9;text-decoration:none}a:hover{color:#4547b8}
+*{box-sizing:border-box}
+input{font-family:inherit}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;min-height:720px;overflow:hidden;font-size:13px;line-height:1.45">
+
+<!-- Sidebar -->
+<aside style="width:236px;flex:none;display:flex;flex-direction:column;background:#ebebef;border-right:1px solid rgba(0,0,0,.07);padding:14px 10px;gap:14px">
+  <div style="position:relative">
+    <button onClick="{{ toggleCondo }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;cursor:pointer;text-align:left;font:inherit;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,.04)">
+      <span style="width:28px;height:28px;border-radius:8px;background:#5a5bd9;color:#fff;display:grid;place-items:center;font-weight:600;font-size:12px">{{ condo.initials }}</span>
+      <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ condo.name }}</span><span style="display:block;color:#6e6e73;font-size:11px">{{ condo.units }} unidades</span></span>
+      <span style="color:#86868b;font-size:10px">▾</span>
+    </button>
+    <sc-if value="{{ condoOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;top:52px;left:0;right:0;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.12);padding:6px;z-index:20;display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ condos }}" as="c" hint-placeholder-count="3">
+          <button onClick="{{ c.select }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:none;border-radius:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;background:{{ c.bg }}" style-hover="background:#f0f0f4">
+            <span style="width:24px;height:24px;border-radius:7px;background:#5a5bd9;color:#fff;display:grid;place-items:center;font-weight:600;font-size:11px">{{ c.initials }}</span>
+            <span style="flex:1"><span style="display:block;font-weight:500">{{ c.name }}</span><span style="display:block;color:#6e6e73;font-size:11px">{{ c.city }}</span></span>
+          </button>
+        </sc-for>
+        <div style="border-top:1px solid rgba(0,0,0,.07);margin:4px 0"></div>
+        <button style="padding:8px 10px;border:none;background:none;text-align:left;font:inherit;color:#5a5bd9;font-weight:500;cursor:pointer;border-radius:8px" style-hover="background:#f0f0f4">+ Novo condomínio</button>
+      </div>
+    </sc-if>
+  </div>
+
+  <nav style="display:flex;flex-direction:column;gap:14px;flex:1">
+    <sc-for list="{{ navGroups }}" as="g" hint-placeholder-count="3">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="padding:0 10px 6px;font-size:11px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:.04em">{{ g.label }}</div>
+        <sc-for list="{{ g.items }}" as="n" hint-placeholder-count="3">
+          <button onClick="{{ n.go }}" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border:none;border-radius:8px;cursor:pointer;text-align:left;font:inherit;font-size:13px;font-weight:500;color:{{ n.color }};background:{{ n.bg }}" style-hover="background:rgba(0,0,0,.05)">
+            <span style="width:8px;height:8px;border-radius:3px;background:{{ n.dot }};flex:none"></span>
+            <span style="flex:1">{{ n.label }}</span>
+            <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:#5a5bd9;color:#fff;font-size:11px;font-weight:600;padding:1px 7px;border-radius:99px">{{ n.badge }}</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+    </sc-for>
+  </nav>
+
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px" style-hover="background:rgba(0,0,0,.05)">
+    <span style="width:30px;height:30px;border-radius:50%;background:#d9d9e3;display:grid;place-items:center;font-weight:600;font-size:12px;color:#4a4a55">RM</span>
+    <span style="flex:1;min-width:0"><span style="display:block;font-weight:500">Renata Moura</span><span style="display:block;color:#6e6e73;font-size:11px">Síndica · {{ condo.name }}</span></span>
+  </div>
+</aside>
+
+<!-- Main -->
+<main style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+  <header style="height:56px;flex:none;display:flex;align-items:center;gap:16px;padding:0 28px;border-bottom:1px solid rgba(0,0,0,.06);background:rgba(245,245,247,.8);backdrop-filter:blur(12px)">
+    <h1 style="margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ screenTitle }}</h1>
+    <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:9px;padding:6px 12px;width:clamp(180px,26vw,280px);color:#86868b;overflow:hidden;white-space:nowrap">
+      <span style="font-size:12px;flex:none">⌕</span><span style="font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">Buscar morador, chamado, artigo…</span><span style="flex:none;font-size:11px;background:#f0f0f4;padding:1px 5px;border-radius:4px">⌘K</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;background:#e8f8ee;color:#1f7a3e;padding:5px 10px;border-radius:99px;font-size:12px;font-weight:500"><span style="width:7px;height:7px;border-radius:50%;background:#2fb35b"></span>Agente online</div>
+  </header>
+
+  <div style="flex:1;overflow:auto;padding:24px 28px 40px"><div style="min-width:1000px">
+
+  <!-- DASHBOARD -->
+  <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:20px;max-width:1200px">
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <div style="background:#fff;border-radius:14px;padding:18px 20px;border:1px solid rgba(0,0,0,.06);box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="color:#6e6e73;font-size:12px;font-weight:500">{{ k.label }}</div>
+            <div style="font-size:30px;font-weight:600;letter-spacing:-.02em;margin-top:6px;line-height:1.1">{{ k.value }}</div>
+            <div style="font-size:12px;margin-top:6px;color:{{ k.deltaColor }}">{{ k.delta }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px">
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);overflow:hidden">
+          <div style="display:flex;align-items:center;padding:16px 20px 12px"><div style="font-weight:600;font-size:14px;flex:1">Atividade do agente</div><a href="#" onClick="{{ goConversas }}" style="font-size:12px;font-weight:500">Ver conversas</a></div>
+          <sc-for list="{{ activity }}" as="a" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;padding:10px 20px;border-top:1px solid rgba(0,0,0,.05)">
+              <span style="color:#86868b;font-size:12px;font-variant-numeric:tabular-nums">{{ a.time }}</span>
+              <span><span style="font-weight:500">{{ a.who }}</span> <span style="color:#6e6e73">· {{ a.text }}</span></span>
+              <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:{{ a.bg }};color:{{ a.fg }}">{{ a.tag }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:16px 20px">
+            <div style="display:flex;align-items:center"><div style="font-weight:600;font-size:14px;flex:1">Aguardando humano</div><a href="#" onClick="{{ goEscalonamentos }}" style="font-size:12px;font-weight:500">Ver fila</a></div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+              <sc-for list="{{ escalationsTop }}" as="e" hint-placeholder-count="3">
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <span style="width:8px;height:8px;border-radius:50%;background:{{ e.dot }};margin-top:6px;flex:none"></span>
+                  <span style="flex:1;min-width:0"><span style="display:block;font-weight:500">{{ e.who }} · {{ e.unit }}</span><span style="display:block;color:#6e6e73;font-size:12px">{{ e.reason }}</span></span>
+                  <span style="color:#86868b;font-size:11px;white-space:nowrap">{{ e.wait }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:16px 20px">
+            <div style="font-weight:600;font-size:14px">Resolução por intenção · 7 dias</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px">
+              <sc-for list="{{ intents }}" as="i" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:150px 1fr 36px;gap:10px;align-items:center;font-size:12px">
+                  <span style="color:#3a3a3f">{{ i.label }}</span>
+                  <span style="height:6px;border-radius:3px;background:#eeeef2;overflow:hidden;display:block"><span style="display:block;height:100%;background:#5a5bd9;width:{{ i.pct }}"></span></span>
+                  <span style="text-align:right;color:#6e6e73;font-variant-numeric:tabular-nums">{{ i.pct }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CONVERSAS -->
+  <sc-if value="{{ isConversas }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:minmax(240px,300px) minmax(360px,1fr) minmax(220px,260px);gap:14px;height:calc(100vh - 120px);min-height:600px">
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);overflow:auto;display:flex;flex-direction:column">
+        <div style="padding:12px 14px;border-bottom:1px solid rgba(0,0,0,.05);display:flex;gap:6px">
+          <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;background:#1d1d1f;color:#fff">Todas</span>
+          <span style="font-size:12px;font-weight:500;padding:4px 10px;border-radius:99px;background:#f0f0f4;color:#3a3a3f">Escaladas</span>
+          <span style="font-size:12px;font-weight:500;padding:4px 10px;border-radius:99px;background:#f0f0f4;color:#3a3a3f">Com chamado</span>
+        </div>
+        <sc-for list="{{ convos }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.select }}" style="display:flex;gap:10px;padding:12px 14px;border:none;border-bottom:1px solid rgba(0,0,0,.05);text-align:left;font:inherit;color:inherit;cursor:pointer;background:{{ c.bg }}" style-hover="background:#f7f7fa">
+            <span style="width:34px;height:34px;border-radius:50%;background:{{ c.avatarBg }};display:grid;place-items:center;font-weight:600;font-size:12px;color:#fff;flex:none">{{ c.initials }}</span>
+            <span style="flex:1;min-width:0">
+              <span style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }} <span style="color:#86868b;font-weight:400">· {{ c.unit }}</span></span><span style="color:#86868b;font-size:11px;flex:none">{{ c.time }}</span></span>
+              <span style="display:block;color:#6e6e73;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">{{ c.preview }}</span>
+              <span style="display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:{{ c.tagBg }};color:{{ c.tagFg }}">{{ c.tag }}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:14px 18px;border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;gap:12px">
+          <span style="font-weight:600;font-size:14px;flex:1">{{ convo.name }} <span style="color:#86868b;font-weight:400">· {{ convo.unit }}</span></span>
+          <button style="font:inherit;font-size:12px;font-weight:500;padding:6px 12px;border-radius:8px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer" style-hover="background:#f7f7fa">Assumir conversa</button>
+        </div>
+        <div style="flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:10px;background:#fafafc">
+          <sc-for list="{{ messages }}" as="m" hint-placeholder-count="6">
+            <sc-if value="{{ m.isTool }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self:center;display:flex;align-items:center;gap:8px;font-size:11px;color:#4a4a55;background:#eeeef4;border:1px solid rgba(90,91,217,.2);padding:5px 12px;border-radius:99px;font-family:ui-monospace,Menlo,monospace">
+                <span style="width:6px;height:6px;border-radius:50%;background:#5a5bd9"></span>{{ m.text }}
+              </div>
+            </sc-if>
+            <sc-if value="{{ m.isMsg }}" hint-placeholder-val="{{ true }}">
+              <div style="max-width:72%;align-self:{{ m.align }}">
+                <div style="padding:9px 13px;border-radius:16px;font-size:13px;line-height:1.45;background:{{ m.bg }};color:{{ m.fg }};box-shadow:0 1px 1px rgba(0,0,0,.04)">{{ m.text }}</div>
+                <div style="font-size:11px;color:#86868b;margin-top:3px;text-align:{{ m.textAlign }}">{{ m.meta }}</div>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div style="padding:12px 18px;border-top:1px solid rgba(0,0,0,.05);display:flex;gap:8px;align-items:center">
+          <span style="flex:1;padding:9px 14px;border:1px solid rgba(0,0,0,.1);border-radius:99px;color:#86868b;background:#fff">Responder como síndico…</span>
+          <button style="font:inherit;font-weight:600;padding:9px 16px;border-radius:99px;border:none;background:#5a5bd9;color:#fff;cursor:pointer" style-hover="background:#4547b8">Enviar</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;overflow:auto">
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:16px">
+          <div style="font-weight:600;font-size:14px">{{ convo.name }}</div>
+          <div style="color:#6e6e73;font-size:12px">{{ convo.unit }} · {{ convo.profile }}</div>
+          <div style="color:#6e6e73;font-size:12px;margin-top:2px">{{ convo.phone }}</div>
+          <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:#e8f8ee;color:#1f7a3e">WhatsApp verificado</span>
+            <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:#f0f0f4;color:#3a3a3f">{{ convo.count }} conversas</span>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:16px">
+          <div style="font-weight:600;font-size:13px;margin-bottom:10px">Intenções detectadas</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ convo.intents }}" as="i" hint-placeholder-count="2">
+              <div style="display:flex;justify-content:space-between;font-size:12px"><span>{{ i.label }}</span><span style="color:#86868b;font-variant-numeric:tabular-nums">{{ i.conf }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:16px">
+          <div style="font-weight:600;font-size:13px;margin-bottom:10px">Ações executadas</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ convo.actions }}" as="a" hint-placeholder-count="2">
+              <div style="display:flex;gap:8px;font-size:12px;align-items:flex-start"><span style="width:6px;height:6px;border-radius:50%;background:#5a5bd9;margin-top:6px;flex:none"></span><span><span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#4a4a55">{{ a.tool }}</span><span style="display:block;color:#6e6e73">{{ a.result }}</span></span></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CHAMADOS -->
+  <sc-if value="{{ isChamados }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:1200px">
+      <div style="display:flex;align-items:flex-end;gap:4px;border-bottom:1px solid rgba(0,0,0,.08)">
+        <sc-for list="{{ ticketTabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.go }}" style="font:inherit;font-size:13px;font-weight:500;padding:8px 14px 10px;border:none;background:none;cursor:pointer;color:{{ t.color }};border-bottom:2px solid {{ t.border }};margin-bottom:-1px">{{ t.label }} <span style="color:#86868b;font-weight:400">{{ t.count }}</span></button>
+        </sc-for>
+        <span style="flex:1"></span>
+        <button style="font:inherit;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;border:none;background:#5a5bd9;color:#fff;cursor:pointer;margin-bottom:8px" style-hover="background:#4547b8">+ Novo chamado</button>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);overflow:hidden">
+        <div style="display:grid;grid-template-columns:90px minmax(0,2fr) 90px 130px 100px 120px 110px;gap:12px;padding:10px 18px;font-size:11px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid rgba(0,0,0,.06)">
+          <span>Protocolo</span><span>Chamado</span><span>Unidade</span><span>Categoria</span><span>Prioridade</span><span>Status</span><span>Aberto</span>
+        </div>
+        <sc-for list="{{ tickets }}" as="t" hint-placeholder-count="6">
+          <button onClick="{{ t.open }}" style="width:100%;display:grid;grid-template-columns:90px minmax(0,2fr) 90px 130px 100px 120px 110px;gap:12px;padding:12px 18px;align-items:center;border:none;border-bottom:1px solid rgba(0,0,0,.05);text-align:left;font:inherit;color:inherit;cursor:pointer;background:{{ t.bg }}" style-hover="background:#f7f7fa">
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#4a4a55">{{ t.id }}</span>
+            <span style="min-width:0"><span style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.title }}</span><span style="display:block;color:#6e6e73;font-size:12px">{{ t.origin }}</span></span>
+            <span>{{ t.unit }}</span>
+            <span style="color:#3a3a3f">{{ t.category }}</span>
+            <span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:{{ t.prioDot }}"></span>{{ t.priority }}</span>
+            <span><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:{{ t.statusBg }};color:{{ t.statusFg }}">{{ t.status }}</span></span>
+            <span style="color:#6e6e73;font-size:12px">{{ t.opened }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ ticketOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeTicket }}" style="position:fixed;inset:0;background:rgba(0,0,0,.18);z-index:30"></div>
+      <div style="position:fixed;top:12px;right:12px;bottom:12px;width:460px;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:31;display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:20px 24px 16px;border-bottom:1px solid rgba(0,0,0,.06)">
+          <div style="display:flex;align-items:center;gap:10px"><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#6e6e73">{{ ticket.id }}</span><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:{{ ticket.statusBg }};color:{{ ticket.statusFg }}">{{ ticket.status }}</span><span style="flex:1"></span><button onClick="{{ closeTicket }}" style="border:none;background:#f0f0f4;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:#4a4a55">×</button></div>
+          <h2 style="margin:10px 0 0;font-size:18px;font-weight:600;letter-spacing:-.01em">{{ ticket.title }}</h2>
+          <div style="color:#6e6e73;font-size:12px;margin-top:4px">{{ ticket.unit }} · {{ ticket.category }} · {{ ticket.origin }}</div>
+        </div>
+        <div style="flex:1;overflow:auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px">
+          <div><div style="font-size:12px;font-weight:600;color:#86868b;margin-bottom:6px">Descrição gerada pelo agente</div><p style="margin:0;color:#3a3a3f">{{ ticket.desc }}</p></div>
+          <div><div style="font-size:12px;font-weight:600;color:#86868b;margin-bottom:8px">Fotos enviadas</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="aspect-ratio:4/3;border-radius:10px;background:repeating-linear-gradient(135deg,#ececf1 0 8px,#f5f5f8 8px 16px);display:grid;place-items:center;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#86868b">foto do morador</div>
+              <div style="aspect-ratio:4/3;border-radius:10px;background:repeating-linear-gradient(135deg,#ececf1 0 8px,#f5f5f8 8px 16px);display:grid;place-items:center;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#86868b">foto do morador</div>
+            </div></div>
+          <div><div style="font-size:12px;font-weight:600;color:#86868b;margin-bottom:10px">Linha do tempo</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ ticket.timeline }}" as="e" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:14px 1fr;gap:10px"><span style="width:10px;height:10px;border-radius:50%;background:{{ e.dot }};margin-top:4px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.1)"></span><span><span style="display:block;font-weight:500">{{ e.text }}</span><span style="display:block;color:#86868b;font-size:11px">{{ e.when }}</span></span></div>
+              </sc-for>
+            </div></div>
+        </div>
+        <div style="padding:14px 24px;border-top:1px solid rgba(0,0,0,.06);display:flex;gap:8px">
+          <button onClick="{{ advanceTicket }}" style="flex:1;font:inherit;font-weight:600;padding:10px;border-radius:10px;border:none;background:#5a5bd9;color:#fff;cursor:pointer" style-hover="background:#4547b8">{{ ticket.nextAction }}</button>
+          <button style="font:inherit;font-weight:500;padding:10px 14px;border-radius:10px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer" style-hover="background:#f7f7fa">Atribuir zelador</button>
+          <button style="font:inherit;font-weight:500;padding:10px 14px;border-radius:10px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer" style-hover="background:#f7f7fa">Avisar morador</button>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- RESERVAS -->
+  <sc-if value="{{ isReservas }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:14px;max-width:1240px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button style="font:inherit;padding:6px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer">‹</button>
+          <span style="font-weight:600;font-size:14px">14 – 20 set 2026</span>
+          <button style="font:inherit;padding:6px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer">›</button>
+          <span style="flex:1"></span>
+          <button style="font:inherit;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;border:none;background:#5a5bd9;color:#fff;cursor:pointer" style-hover="background:#4547b8">+ Reserva manual</button>
+        </div>
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);overflow:hidden">
+          <div style="display:grid;grid-template-columns:140px repeat(7,minmax(0,1fr));border-bottom:1px solid rgba(0,0,0,.06)">
+            <span style="padding:10px 14px"></span>
+            <sc-for list="{{ days }}" as="d" hint-placeholder-count="7"><span style="padding:10px 6px;text-align:center;font-size:12px;color:{{ d.color }};font-weight:{{ d.weight }}">{{ d.label }}</span></sc-for>
+          </div>
+          <sc-for list="{{ areas }}" as="ar" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:140px repeat(7,minmax(0,1fr));border-bottom:1px solid rgba(0,0,0,.05);min-height:64px">
+              <span style="padding:12px 14px;font-weight:500;border-right:1px solid rgba(0,0,0,.05)">{{ ar.name }}<span style="display:block;font-size:11px;color:#86868b;font-weight:400">{{ ar.capacity }}</span></span>
+              <sc-for list="{{ ar.cells }}" as="cell" hint-placeholder-count="7">
+                <span style="padding:6px;display:flex;flex-direction:column;gap:4px;border-right:1px solid rgba(0,0,0,.03)">
+                  <sc-for list="{{ cell }}" as="b" hint-placeholder-count="0">
+                    <span style="display:block;font-size:11px;padding:4px 7px;border-radius:6px;background:{{ b.bg }};color:{{ b.fg }};font-weight:500;line-height:1.3"><span style="display:block">{{ b.time }}</span><span style="display:block;font-weight:400;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.who }}</span></span>
+                  </sc-for>
+                </span>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:16px 18px">
+          <div style="font-weight:600;font-size:14px;margin-bottom:12px">Pedidos pelo WhatsApp</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ bookingRequests }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;gap:4px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,.05)">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:500">{{ r.who }} · {{ r.unit }}</span><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:{{ r.bg }};color:{{ r.fg }}">{{ r.status }}</span></div>
+                <div style="color:#3a3a3f;font-size:12px">{{ r.what }}</div>
+                <div style="color:#86868b;font-size:11px">{{ r.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:16px 18px">
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px">Regras aplicadas pela tool</div>
+          <div style="color:#6e6e73;font-size:12px;margin-bottom:12px">O agente só confirma se <span style="font-family:ui-monospace,Menlo,monospace">reservar_area</span> aceitar.</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ areaRules }}" as="r" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px;padding:8px 10px;background:#f7f7fa;border-radius:8px"><span style="font-weight:500">{{ r.area }}</span><span style="color:#6e6e73">{{ r.rule }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- COMUNICADOS -->
+  <sc-if value="{{ isComunicados }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:1100px">
+      <div style="display:flex;align-items:flex-end;gap:4px;border-bottom:1px solid rgba(0,0,0,.08)">
+        <sc-for list="{{ noticeTabs }}" as="t" hint-placeholder-count="2">
+          <button onClick="{{ t.go }}" style="font:inherit;font-size:13px;font-weight:500;padding:8px 14px 10px;border:none;background:none;cursor:pointer;color:{{ t.color }};border-bottom:2px solid {{ t.border }};margin-bottom:-1px">{{ t.label }} <span style="color:#86868b;font-weight:400">{{ t.count }}</span></button>
+        </sc-for>
+        <span style="flex:1"></span>
+        <button style="font:inherit;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;border:none;background:#5a5bd9;color:#fff;cursor:pointer;margin-bottom:8px" style-hover="background:#4547b8">+ Novo comunicado</button>
+      </div>
+      <div style="color:#6e6e73;font-size:12px">Só comunicados <b style="color:#1d1d1f;font-weight:600">vigentes</b> entram no contexto do agente. Vencidos ficam no histórico e não são citados.</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+        <sc-for list="{{ notices }}" as="n" hint-placeholder-count="4">
+          <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:18px 20px;display:flex;flex-direction:column;gap:10px;opacity:{{ n.opacity }}">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:{{ n.bg }};color:{{ n.fg }}">{{ n.state }}</span><span style="font-size:11px;color:#86868b">{{ n.kind }}</span><span style="flex:1"></span><span style="font-size:11px;color:#86868b">{{ n.uses }} respostas</span></div>
+            <div style="font-weight:600;font-size:15px;letter-spacing:-.01em">{{ n.title }}</div>
+            <p style="margin:0;color:#3a3a3f;font-size:13px">{{ n.body }}</p>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#6e6e73;margin-top:2px"><span>Válido {{ n.range }}</span><a href="#">Editar</a></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- REGIMENTO -->
+  <sc-if value="{{ isRegimento }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:minmax(200px,240px) minmax(360px,1fr) minmax(280px,340px);gap:14px;max-width:1300px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ docs }}" as="d" hint-placeholder-count="3">
+          <button onClick="{{ d.select }}" style="text-align:left;font:inherit;color:inherit;padding:12px 14px;border-radius:12px;border:1px solid {{ d.border }};background:{{ d.bg }};cursor:pointer" style-hover="background:#fff">
+            <span style="display:block;font-weight:600">{{ d.name }}</span>
+            <span style="display:block;color:#6e6e73;font-size:12px;margin-top:2px">{{ d.meta }}</span>
+          </button>
+        </sc-for>
+        <button style="text-align:left;font:inherit;padding:12px 14px;border-radius:12px;border:1px dashed rgba(0,0,0,.15);background:none;cursor:pointer;color:#5a5bd9;font-weight:500">+ Enviar PDF</button>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);overflow:hidden">
+        <div style="padding:14px 18px;border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;gap:10px"><span style="font-weight:600;font-size:14px;flex:1">{{ doc.name }}</span><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:#e8f8ee;color:#1f7a3e">Indexado · {{ doc.chunks }} trechos</span></div>
+        <sc-for list="{{ doc.articles }}" as="a" hint-placeholder-count="5">
+          <div style="padding:14px 18px;border-bottom:1px solid rgba(0,0,0,.05);display:grid;grid-template-columns:64px 1fr auto;gap:14px">
+            <span style="font-weight:600;color:#5a5bd9;font-size:12px">{{ a.num }}</span>
+            <span><span style="display:block;font-weight:500">{{ a.title }}</span><span style="display:block;color:#3a3a3f;font-size:12px;margin-top:3px">{{ a.text }}</span></span>
+            <span style="font-size:11px;color:#86868b;white-space:nowrap">citado {{ a.cites }}×</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:18px;display:flex;flex-direction:column;gap:12px;align-self:start">
+        <div><div style="font-weight:600;font-size:14px">Testar pergunta</div><div style="color:#6e6e73;font-size:12px">Simula o que o agente responderia no WhatsApp.</div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <sc-for list="{{ sampleQs }}" as="q" hint-placeholder-count="3"><button onClick="{{ q.ask }}" style="font:inherit;font-size:12px;padding:5px 10px;border-radius:99px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer;color:#3a3a3f" style-hover="background:#f7f7fa">{{ q.label }}</button></sc-for>
+        </div>
+        <sc-if value="{{ testAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="align-self:flex-end;background:#dcf8c6;padding:8px 12px;border-radius:14px;max-width:85%;font-size:13px">{{ testAnswer.q }}</div>
+            <div style="align-self:flex-start;background:#f0f0f4;padding:10px 12px;border-radius:14px;max-width:92%;font-size:13px;line-height:1.5">{{ testAnswer.a }}<div style="margin-top:8px;padding:8px 10px;background:#fff;border-radius:8px;border-left:2px solid #5a5bd9;font-size:12px;color:#3a3a3f"><b style="font-weight:600;color:#5a5bd9">{{ testAnswer.cite }}</b> — {{ testAnswer.quote }}</div></div>
+            <div style="font-size:11px;color:#86868b;font-family:ui-monospace,Menlo,monospace">consultar_regimento · {{ testAnswer.ms }} · {{ testAnswer.score }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ESCALONAMENTOS -->
+  <sc-if value="{{ isEscalonamentos }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:1000px">
+      <div style="color:#6e6e73;font-size:13px">O agente entregou estas conversas porque a regra não cobria, a tool recusou ou o morador pediu um humano.</div>
+      <sc-for list="{{ escalations }}" as="e" hint-placeholder-count="4">
+        <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start">
+          <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{ e.dot }}"></span><span style="font-weight:600">{{ e.who }} <span style="color:#86868b;font-weight:400">· {{ e.unit }}</span></span><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:#f0f0f4;color:#3a3a3f">{{ e.reasonTag }}</span><span style="color:#86868b;font-size:12px">· esperando {{ e.wait }}</span></div>
+            <div style="color:#3a3a3f">{{ e.summary }}</div>
+            <div style="background:#f7f7fa;border-radius:10px;padding:10px 12px;font-size:12px;color:#3a3a3f"><span style="color:#86868b;font-weight:600">Última mensagem:</span> “{{ e.last }}”</div>
+            <div style="font-size:12px;color:#6e6e73"><span style="font-weight:600;color:#3a3a3f">Motivo do agente:</span> {{ e.reason }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;width:170px">
+            <sc-if value="{{ e.pending }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ e.take }}" style="font:inherit;font-weight:600;padding:9px 14px;border-radius:9px;border:none;background:#5a5bd9;color:#fff;cursor:pointer" style-hover="background:#4547b8">Assumir</button>
+              <button style="font:inherit;font-weight:500;padding:9px 14px;border-radius:9px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer" style-hover="background:#f7f7fa">Ver conversa</button>
+              <button onClick="{{ e.dismiss }}" style="font:inherit;font-weight:500;padding:9px 14px;border-radius:9px;border:none;background:none;cursor:pointer;color:#6e6e73" style-hover="color:#1d1d1f">Devolver à IA</button>
+            </sc-if>
+            <sc-if value="{{ e.taken }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:9px 14px;border-radius:9px;background:#e8f8ee;color:#1f7a3e;font-weight:600;text-align:center">Com você</div>
+              <button style="font:inherit;font-weight:500;padding:9px 14px;border-radius:9px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer" style-hover="background:#f7f7fa">Abrir conversa</button>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- MORADORES -->
+  <sc-if value="{{ isMoradores }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:1100px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;font-weight:600;padding:5px 12px;border-radius:99px;background:#1d1d1f;color:#fff">Todos · {{ residentCount }}</span>
+        <span style="font-size:12px;font-weight:500;padding:5px 12px;border-radius:99px;background:#fff;border:1px solid rgba(0,0,0,.08)">Bloco A</span>
+        <span style="font-size:12px;font-weight:500;padding:5px 12px;border-radius:99px;background:#fff;border:1px solid rgba(0,0,0,.08)">Bloco B</span>
+        <span style="font-size:12px;font-weight:500;padding:5px 12px;border-radius:99px;background:#fff;border:1px solid rgba(0,0,0,.08)">Sem WhatsApp</span>
+        <span style="flex:1"></span>
+        <button style="font:inherit;font-size:12px;font-weight:500;padding:7px 14px;border-radius:8px;border:1px solid rgba(0,0,0,.1);background:#fff;cursor:pointer">Importar planilha</button>
+        <button style="font:inherit;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;border:none;background:#5a5bd9;color:#fff;cursor:pointer" style-hover="background:#4547b8">+ Morador</button>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);overflow:hidden">
+        <div style="display:grid;grid-template-columns:90px minmax(0,1.6fr) 150px 120px 150px 100px;gap:12px;padding:10px 18px;font-size:11px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid rgba(0,0,0,.06)"><span>Unidade</span><span>Nome</span><span>Telefone</span><span>Perfil</span><span>WhatsApp</span><span>Conversas</span></div>
+        <sc-for list="{{ residents }}" as="r" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:90px minmax(0,1.6fr) 150px 120px 150px 100px;gap:12px;padding:12px 18px;align-items:center;border-bottom:1px solid rgba(0,0,0,.05)" style-hover="background:#f7f7fa">
+            <span style="font-weight:600">{{ r.unit }}</span>
+            <span style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:50%;background:{{ r.avatarBg }};color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600">{{ r.initials }}</span>{{ r.name }}</span>
+            <span style="color:#3a3a3f;font-variant-numeric:tabular-nums">{{ r.phone }}</span>
+            <span style="color:#3a3a3f">{{ r.profile }}</span>
+            <span><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:{{ r.waBg }};color:{{ r.waFg }}">{{ r.wa }}</span></span>
+            <span style="color:#6e6e73">{{ r.convos }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CONFIG -->
+  <sc-if value="{{ isConfig }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:1100px;align-items:start">
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:20px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-weight:600;font-size:14px">Condomínio</div>
+        <sc-for list="{{ condoFields }}" as="f" hint-placeholder-count="4">
+          <label style="display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center;font-size:12px;color:#6e6e73">{{ f.label }}<span style="padding:8px 12px;border:1px solid rgba(0,0,0,.1);border-radius:9px;color:#1d1d1f;font-size:13px;background:#fafafc">{{ f.value }}</span></label>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:20px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-weight:600;font-size:14px">Comportamento do agente</div>
+        <sc-for list="{{ agentToggles }}" as="t" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="flex:1"><span style="display:block;font-weight:500">{{ t.label }}</span><span style="display:block;color:#6e6e73;font-size:12px">{{ t.desc }}</span></span>
+            <button onClick="{{ t.flip }}" style="width:40px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;background:{{ t.bg }};transition:background .2s"><span style="position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s;left:{{ t.knob }}"></span></button>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center"><span style="font-weight:600;font-size:14px;flex:1">Áreas comuns</span><a href="#" style="font-size:12px;font-weight:500">+ Adicionar</a></div>
+        <sc-for list="{{ areaRules }}" as="r" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:10px 12px;background:#f7f7fa;border-radius:10px;font-size:12px"><span style="font-weight:500;font-size:13px">{{ r.area }}</span><span style="color:#6e6e73">{{ r.rule }}</span><a href="#">Editar</a></div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.06);padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div><div style="font-weight:600;font-size:14px">Integração · tools do agente</div><div style="color:#6e6e73;font-size:12px">Endpoints que o fluxo n8n chama. Chave rotacionada em 02 set 2026.</div></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid rgba(0,0,0,.1);border-radius:9px;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#fafafc"><span style="flex:1;color:#3a3a3f">sk_live_••••••••••••7f2a</span><a href="#" style="font-family:inherit">Rotacionar</a></div>
+        <sc-for list="{{ endpoints }}" as="e" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;font-size:12px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05)">
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;text-align:center;background:{{ e.bg }};color:{{ e.fg }}">{{ e.method }}</span>
+            <span><span style="display:block;font-family:ui-monospace,Menlo,monospace;color:#1d1d1f">{{ e.path }}</span><span style="display:block;color:#6e6e73">{{ e.desc }}</span></span>
+            <span style="color:#86868b;white-space:nowrap">{{ e.calls }} / 7d</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  </div></div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showToolCalls&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Conversas&quot;},&quot;pendingBadge&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Navegação&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'dashboard', condo: 0, condoOpen: false, convo: 0, ticketFilter: 'Todos', ticketId: null, ticketStatus: {}, noticeTab: 'Vigentes', doc: 0, testQ: null, escState: {}, toggles: { silence: true, escalate: true, cite: true, photos: false } };
+
+  go(screen) { this.setState({ screen, condoOpen: false, ticketId: null }); }
+
+  renderVals() {
+    const s = this.state, P = this.props;
+    const showTools = P.showToolCalls ?? true;
+    const badgeStyle = P.pendingBadge ?? true;
+    const condos = [
+      { name: 'Residencial Aurora', city: 'Curitiba · PR', units: 128, initials: 'RA' },
+      { name: 'Edifício Solar das Palmeiras', city: 'São Paulo · SP', units: 64, initials: 'SP' },
+      { name: 'Villa Serena', city: 'Florianópolis · SC', units: 212, initials: 'VS' },
+    ].map((c, i) => ({ ...c, bg: i === s.condo ? '#f0f0f4' : 'transparent', select: () => this.setState({ condo: i, condoOpen: false }) }));
+    const condo = condos[s.condo];
+
+    const pending = 3 - Object.values(s.escState).filter(Boolean).length;
+    const titles = { dashboard: 'Visão geral', escalonamentos: 'Escalonamentos', conversas: 'Conversas', chamados: 'Chamados de manutenção', reservas: 'Reservas de áreas comuns', comunicados: 'Comunicados', regimento: 'Regimento e convenção', moradores: 'Moradores e unidades', config: 'Configurações' };
+    const mk = (id, label, dot, badge) => ({ label, dot, badge: badgeStyle && badge ? badge : false, color: s.screen === id ? '#1d1d1f' : '#3a3a3f', bg: s.screen === id ? 'rgba(0,0,0,.07)' : 'transparent', go: () => this.go(id) });
+    const navGroups = [
+      { label: 'Operação', items: [mk('dashboard', 'Visão geral', '#5a5bd9'), mk('escalonamentos', 'Escalonamentos', '#e5484d', pending || false), mk('conversas', 'Conversas', '#2fb35b'), mk('chamados', 'Chamados', '#f5a623'), mk('reservas', 'Reservas', '#30a4c9')] },
+      { label: 'Base de conhecimento', items: [mk('comunicados', 'Comunicados', '#8e8e93'), mk('regimento', 'Regimento', '#8e8e93')] },
+      { label: 'Cadastro', items: [mk('moradores', 'Moradores', '#8e8e93'), mk('config', 'Configurações', '#8e8e93')] },
+    ];
+
+    const tag = { ia: ['#eeeef8', '#4547b8'], ok: ['#e8f8ee', '#1f7a3e'], warn: ['#fff4e0', '#a05a00'], esc: ['#fdecec', '#b3261e'], grey: ['#f0f0f4', '#3a3a3f'] };
+    const T = (k) => ({ bg: tag[k][0], fg: tag[k][1] });
+
+    const kpis = [
+      { label: 'Conversas hoje', value: '47', delta: '+12% vs. ontem', deltaColor: '#1f7a3e' },
+      { label: 'Resolvidas pelo agente', value: '89%', delta: '42 de 47 sem humano', deltaColor: '#6e6e73' },
+      { label: 'Chamados abertos', value: '8', delta: '2 urgentes', deltaColor: '#b3261e' },
+      { label: 'Aguardando síndico', value: String(pending), delta: 'tempo médio 14 min', deltaColor: '#6e6e73' },
+    ];
+    const activity = [
+      { time: '09:42', who: 'Marina · 402B', text: 'perguntou sobre horário de silêncio', tag: 'Regimento · Art. 14', ...T('ia') },
+      { time: '09:38', who: 'Carlos · 1201A', text: 'abriu chamado do elevador B', tag: 'Chamado #4821', ...T('warn') },
+      { time: '09:31', who: 'Paula · 305A', text: 'reservou churrasqueira sáb 20/09', tag: 'Reserva confirmada', ...T('ok') },
+      { time: '09:20', who: 'Jorge · 708B', text: 'perguntou se vai faltar água', tag: 'Comunicado vigente', ...T('ia') },
+      { time: '09:05', who: 'Ana · 102A', text: 'pediu para falar com o síndico', tag: 'Escalado', ...T('esc') },
+      { time: '08:51', who: 'Rafael · 911B', text: 'consultou status da infiltração', tag: 'Chamado #4802', ...T('grey') },
+    ];
+    const intents = [['Regimento / convenção', 96], ['Comunicados', 94], ['Abrir chamado', 91], ['Status de chamado', 88], ['Reservar área', 79]].map(([label, p]) => ({ label, pct: p + '%' }));
+
+    const escBase = [
+      { who: 'Ana Beatriz', unit: '102A', reasonTag: 'Pediu humano', reason: 'Morador pediu explicitamente falar com o síndico após duas respostas.', summary: 'Cobrança de taxa extra de setembro que ela diz já ter pago.', last: 'Quero falar com a síndica, isso não está certo.', wait: '14 min', dot: '#e5484d' },
+      { who: 'Fernando Lima', unit: '1504B', reasonTag: 'Tool recusou', reason: 'reservar_area retornou conflito: salão já reservado para 20/09 19h.', summary: 'Quer o salão de festas em 20/09 à noite, mesma data já ocupada.', last: 'Não tem jeito de encaixar? É aniversário da minha filha.', wait: '32 min', dot: '#f5a623' },
+      { who: 'Lucia Prado', unit: '607A', reasonTag: 'Sem regra', reason: 'Nenhum artigo cobre instalação de carregador de carro elétrico.', summary: 'Pergunta se pode instalar carregador na vaga.', last: 'Posso colocar um carregador de carro elétrico na minha vaga?', wait: '1 h 05', dot: '#f5a623' },
+    ];
+    const escalations = escBase.map((e, i) => ({ ...e, pending: !s.escState[i], taken: !!s.escState[i], take: () => this.setState({ escState: { ...s.escState, [i]: true } }), dismiss: () => this.setState({ escState: { ...s.escState, [i]: true } }) }));
+    const escalationsTop = escalations.filter(e => e.pending);
+
+    const avatars = ['#5a5bd9', '#30a4c9', '#2fb35b', '#f5a623', '#e5484d', '#8e8e93'];
+    const convoBase = [
+      { name: 'Carlos Mendes', unit: '1201A', profile: 'Proprietário', phone: '+55 41 99812-3344', time: '09:38', preview: 'Elevador do bloco B parou de novo…', tag: 'Chamado #4821', tk: 'warn', count: 12,
+        intents: [{ label: 'Abrir chamado', conf: '0.97' }, { label: 'Manutenção · elevador', conf: '0.93' }],
+        actions: [{ tool: 'abrir_chamado()', result: 'Protocolo #4821 · prioridade alta' }, { tool: 'notificar_zelador()', result: 'Enviado para Seu José 09:39' }],
+        msgs: [['u', 'Bom dia, o elevador do bloco B parou de novo, tem gente esperando no térreo'], ['a', 'Bom dia, Carlos. Entendi: elevador do bloco B parado. Vou abrir um chamado agora.'], ['t', 'abrir_chamado · categoria=elevador · prioridade=alta → #4821'], ['a', 'Chamado #4821 aberto com prioridade alta. O zelador já foi avisado e a manutenção deve chegar em até 2 h. Te aviso por aqui quando normalizar.'], ['u', 'Valeu. Se tiver foto ajuda?'], ['a', 'Ajuda sim. Pode mandar que anexo ao chamado.']] },
+      { name: 'Marina Souza', unit: '402B', profile: 'Inquilina', phone: '+55 41 99655-0021', time: '09:42', preview: 'Até que horas pode barulho de obra?', tag: 'Regimento', tk: 'ia', count: 4,
+        intents: [{ label: 'Consultar regimento', conf: '0.98' }],
+        actions: [{ tool: 'consultar_regimento()', result: 'Art. 14 · score 0.91' }],
+        msgs: [['u', 'Até que horas pode barulho de obra?'], ['t', 'consultar_regimento · "horário obra barulho" → Art. 14'], ['a', 'Obras e reformas são permitidas de segunda a sexta, das 8h às 17h, e aos sábados das 9h às 13h. Domingos e feriados não. Fonte: Regimento Interno, Art. 14.'], ['u', 'E furadeira no domingo de manhã?'], ['a', 'Não, o Art. 14 não abre exceção para domingo. Se for algo urgente, me avise e eu passo para a síndica.']] },
+      { name: 'Paula Ribeiro', unit: '305A', profile: 'Proprietária', phone: '+55 41 98877-1290', time: '09:31', preview: 'Quero a churrasqueira sábado', tag: 'Reserva', tk: 'ok', count: 7,
+        intents: [{ label: 'Reservar área', conf: '0.95' }],
+        actions: [{ tool: 'reservar_area()', result: 'Churrasqueira · 20/09 12h–18h · confirmada' }],
+        msgs: [['u', 'Quero a churrasqueira sábado que vem, meio-dia'], ['t', 'reservar_area · churrasqueira · 2026-09-20 12:00 → ok'], ['a', 'Reservado: churrasqueira, sábado 20/09, 12h às 18h, em nome da unidade 305A. Lembrete: limpeza é por conta de quem reserva (Art. 22).']] },
+      { name: 'Ana Beatriz', unit: '102A', profile: 'Proprietária', phone: '+55 41 99123-8800', time: '09:05', preview: 'Quero falar com a síndica', tag: 'Escalado', tk: 'esc', count: 9,
+        intents: [{ label: 'Falar com humano', conf: '0.99' }, { label: 'Financeiro', conf: '0.71' }],
+        actions: [{ tool: 'escalar_humano()', result: 'Na fila há 14 min' }],
+        msgs: [['u', 'Recebi cobrança de taxa extra mas já paguei em agosto'], ['a', 'Entendi, Ana. Não tenho acesso ao financeiro para conferir pagamentos. Posso encaminhar para a síndica?'], ['u', 'Quero falar com a síndica, isso não está certo.'], ['t', 'escalar_humano · motivo=pedido_explicito'], ['a', 'Encaminhei para a síndica Renata. Ela responde por aqui mesmo assim que possível.']] },
+      { name: 'Jorge Amaral', unit: '708B', profile: 'Inquilino', phone: '+55 41 99700-4411', time: '09:20', preview: 'Vai faltar água hoje?', tag: 'Comunicado', tk: 'ia', count: 2,
+        intents: [{ label: 'Consultar comunicado', conf: '0.96' }],
+        actions: [{ tool: 'consultar_comunicados(vigente=true)', result: '1 comunicado · Manutenção da caixa d’água' }],
+        msgs: [['u', 'Vai faltar água hoje?'], ['t', 'consultar_comunicados · filtro=vigente → 1 resultado'], ['a', 'Sim. Comunicado vigente: manutenção da caixa d’água quinta 18/09, das 9h às 14h, sem abastecimento nos blocos A e B. Hoje não há interrupção prevista.']] },
+      { name: 'Rafael Nunes', unit: '911B', profile: 'Proprietário', phone: '+55 41 98300-7765', time: '08:51', preview: 'E aquela infiltração?', tag: 'Chamado #4802', tk: 'grey', count: 5,
+        intents: [{ label: 'Status de chamado', conf: '0.94' }],
+        actions: [{ tool: 'consultar_chamado(#4802)', result: 'Em andamento · visita agendada 17/09' }],
+        msgs: [['u', 'E aquela infiltração?'], ['t', 'consultar_chamado · unidade=911B → #4802'], ['a', 'Chamado #4802 (infiltração no teto do banheiro) está em andamento. A impermeabilizadora fez vistoria em 12/09 e o reparo está agendado para quarta 17/09, das 9h às 12h. Precisa que alguém esteja em casa.']] },
+    ];
+    const convos = convoBase.map((c, i) => ({ ...c, initials: c.name.split(' ').map(w => w[0]).slice(0, 2).join(''), avatarBg: avatars[i % avatars.length], tagBg: tag[c.tk][0], tagFg: tag[c.tk][1], bg: i === s.convo ? '#f0f0f6' : '#fff', select: () => this.setState({ convo: i }) }));
+    const convo = convos[s.convo];
+    const messages = convo.msgs.filter(m => showTools || m[0] !== 't').map(([r, text], i) => r === 't' ? { isTool: true, isMsg: false, text } : { isTool: false, isMsg: true, text, align: r === 'u' ? 'flex-start' : 'flex-end', textAlign: r === 'u' ? 'left' : 'right', bg: r === 'u' ? '#fff' : '#5a5bd9', fg: r === 'u' ? '#1d1d1f' : '#fff', meta: r === 'u' ? convo.name.split(' ')[0] + ' · WhatsApp' : 'Agente · ' + (9 + i * 0) + ':' + String(30 + i * 2).padStart(2, '0') });
+
+    const statusOrder = ['Aberto', 'Em andamento', 'Concluído'];
+    const stColor = { 'Aberto': T('esc'), 'Em andamento': T('warn'), 'Concluído': T('ok') };
+    const prio = { Alta: '#e5484d', Média: '#f5a623', Baixa: '#8e8e93' };
+    const ticketBase = [
+      { id: '#4821', title: 'Elevador do bloco B parado', unit: '1201A', category: 'Elevador', priority: 'Alta', status: 'Aberto', opened: 'hoje 09:38', origin: 'WhatsApp · agente', desc: 'Morador relata que o elevador do bloco B parou no térreo com pessoas aguardando. Segunda ocorrência na semana. Sem pessoas presas.', timeline: [['Chamado aberto pelo agente', 'hoje 09:38', '#5a5bd9'], ['Zelador notificado', 'hoje 09:39', '#8e8e93']] },
+      { id: '#4819', title: 'Lâmpada queimada garagem G2', unit: 'Área comum', category: 'Elétrica', priority: 'Baixa', status: 'Aberto', opened: 'ontem 18:20', origin: 'WhatsApp · agente', desc: 'Luminária próxima às vagas 41–44 do G2 apagada.', timeline: [['Chamado aberto pelo agente', 'ontem 18:20', '#5a5bd9']] },
+      { id: '#4815', title: 'Portão da garagem não fecha', unit: 'Área comum', category: 'Portaria', priority: 'Alta', status: 'Em andamento', opened: '13 set', origin: 'Zelador · manual', desc: 'Portão automático fica aberto após passagem. Técnico da Portec acionado.', timeline: [['Chamado aberto manualmente', '13 set 07:10', '#5a5bd9'], ['Técnico agendado', '13 set 11:00', '#f5a623']] },
+      { id: '#4802', title: 'Infiltração no teto do banheiro', unit: '911B', category: 'Hidráulica', priority: 'Média', status: 'Em andamento', opened: '10 set', origin: 'WhatsApp · agente', desc: 'Mancha e gotejamento no teto do banheiro social, provável origem na unidade 1011B.', timeline: [['Chamado aberto pelo agente', '10 set 14:02', '#5a5bd9'], ['Vistoria realizada', '12 set 10:30', '#f5a623'], ['Reparo agendado 17/09', '12 set 16:00', '#8e8e93']] },
+      { id: '#4798', title: 'Interfone 305A sem áudio', unit: '305A', category: 'Interfone', priority: 'Baixa', status: 'Concluído', opened: '08 set', origin: 'WhatsApp · agente', desc: 'Interfone não recebe áudio da portaria.', timeline: [['Chamado aberto pelo agente', '08 set', '#5a5bd9'], ['Concluído · morador avisado', '09 set', '#2fb35b']] },
+      { id: '#4791', title: 'Vazamento na torneira do salão', unit: 'Área comum', category: 'Hidráulica', priority: 'Média', status: 'Concluído', opened: '05 set', origin: 'Síndica · manual', desc: 'Torneira da copa do salão de festas pingando.', timeline: [['Aberto', '05 set', '#5a5bd9'], ['Concluído', '06 set', '#2fb35b']] },
+    ].map(t => { const st = s.ticketStatus[t.id] || t.status; return { ...t, status: st, statusBg: stColor[st].bg, statusFg: stColor[st].fg, prioDot: prio[t.priority], nextAction: st === 'Aberto' ? 'Iniciar atendimento' : st === 'Em andamento' ? 'Marcar concluído' : 'Reabrir', bg: s.ticketId === t.id ? '#f0f0f6' : '#fff', open: () => this.setState({ ticketId: t.id }), timeline: t.timeline.map(([text, when, dot]) => ({ text, when, dot })) }; });
+    const tickets = ticketBase.filter(t => s.ticketFilter === 'Todos' || (s.ticketFilter === 'Abertos' ? t.status === 'Aberto' : s.ticketFilter === 'Em andamento' ? t.status === 'Em andamento' : t.status === 'Concluído'));
+    const ticketTabs = ['Todos', 'Abertos', 'Em andamento', 'Concluídos'].map(l => ({ label: l, count: l === 'Todos' ? ticketBase.length : ticketBase.filter(t => l === 'Abertos' ? t.status === 'Aberto' : l === 'Em andamento' ? t.status === 'Em andamento' : t.status === 'Concluído').length, color: s.ticketFilter === l ? '#1d1d1f' : '#6e6e73', border: s.ticketFilter === l ? '#1d1d1f' : 'transparent', go: () => this.setState({ ticketFilter: l }) }));
+    const ticket = ticketBase.find(t => t.id === s.ticketId) || ticketBase[0];
+    const advanceTicket = () => { const i = statusOrder.indexOf(ticket.status); this.setState({ ticketStatus: { ...s.ticketStatus, [ticket.id]: statusOrder[(i + 1) % 3] } }); };
+
+    const days = ['seg 14', 'ter 15', 'qua 16', 'qui 17', 'sex 18', 'sáb 19', 'dom 20'].map((label, i) => ({ label, color: i === 1 ? '#5a5bd9' : '#6e6e73', weight: i === 1 ? 600 : 500 }));
+    const B = (time, who, k) => ({ time, who, bg: tag[k][0], fg: tag[k][1] });
+    const areas = [
+      { name: 'Salão de festas', capacity: 'até 60 pessoas', cells: [[], [], [], [], [B('19h–23h', 'Souza · 402B', 'ia')], [], [B('19h–23h', 'Martins · 801A', 'ia')]] },
+      { name: 'Churrasqueira', capacity: 'até 25 pessoas', cells: [[], [], [], [], [], [B('12h–18h', 'Ribeiro · 305A', 'ok')], [B('12h–18h', 'Costa · 210B', 'ok'), B('18h–22h', 'pendente', 'warn')]] },
+      { name: 'Quadra', capacity: 'blocos de 1 h', cells: [[B('19h–20h', 'Nunes · 911B', 'grey')], [], [B('19h–20h', 'Nunes · 911B', 'grey')], [], [], [B('09h–10h', 'Lima · 1504B', 'grey')], []] },
+      { name: 'Espaço gourmet', capacity: 'até 20 pessoas', cells: [[], [], [], [], [], [], []] },
+    ];
+    const bookingRequests = [
+      { who: 'Paula Ribeiro', unit: '305A', what: 'Churrasqueira · sáb 20/09 · 12h–18h', status: 'Confirmada', note: 'Sem conflito · antecedência 5 dias', ...T('ok') },
+      { who: 'Fernando Lima', unit: '1504B', what: 'Salão de festas · dom 20/09 · 19h', status: 'Recusada', note: 'Conflito com Martins · 801A · escalado', ...T('esc') },
+      { who: 'Diego Costa', unit: '210B', what: 'Churrasqueira · dom 20/09 · 18h–22h', status: 'Aguardando', note: 'Antecedência < 48 h · precisa aprovação', ...T('warn') },
+    ];
+    const areaRules = [['Salão de festas', '7 dias · máx 4 h · até 23h'], ['Churrasqueira', '48 h · máx 6 h · até 22h'], ['Quadra', '24 h · blocos de 1 h'], ['Espaço gourmet', '48 h · máx 5 h']].map(([area, rule]) => ({ area, rule }));
+
+    const noticeBase = [
+      { title: 'Manutenção da caixa d’água', kind: 'Água', body: 'Quinta 18/09, das 9h às 14h, não haverá abastecimento nos blocos A e B. Reserve água com antecedência.', range: '15 set – 18 set', uses: 23, live: true },
+      { title: 'Obra no hall do bloco A', kind: 'Obra', body: 'Troca do piso do hall de entrada. Acesso pela porta lateral até o fim do mês. Ruído entre 8h e 17h.', range: '01 set – 30 set', uses: 41, live: true },
+      { title: 'Assembleia ordinária', kind: 'Assembleia', body: 'Terça 30/09, 19h30, no salão de festas. Pauta: previsão orçamentária 2027 e reforma da fachada.', range: '10 set – 30 set', uses: 9, live: true },
+      { title: 'Dedetização das áreas comuns', kind: 'Serviço', body: 'Sábado 06/09, das 8h às 12h. Evite circular na garagem e no salão durante o serviço.', range: '01 set – 06 set', uses: 17, live: false },
+      { title: 'Limpeza da piscina', kind: 'Serviço', body: 'Piscina fechada para tratamento de 25 a 27 de agosto.', range: '22 ago – 27 ago', uses: 6, live: false },
+    ];
+    const noticeTabs = ['Vigentes', 'Vencidos'].map(l => ({ label: l, count: noticeBase.filter(n => (l === 'Vigentes') === n.live).length, color: s.noticeTab === l ? '#1d1d1f' : '#6e6e73', border: s.noticeTab === l ? '#1d1d1f' : 'transparent', go: () => this.setState({ noticeTab: l }) }));
+    const notices = noticeBase.filter(n => (s.noticeTab === 'Vigentes') === n.live).map(n => ({ ...n, state: n.live ? 'Vigente' : 'Vencido', opacity: n.live ? 1 : .75, ...(n.live ? T('ok') : T('grey')) }));
+
+    const docBase = [
+      { name: 'Regimento Interno', meta: 'Atualizado mar 2025 · 48 artigos', chunks: 112, articles: [
+        ['Art. 12', 'Horário de silêncio', 'É vedado produzir ruído que perturbe o sossego entre 22h e 8h, inclusive em áreas comuns.', 38],
+        ['Art. 14', 'Obras e reformas', 'Obras são permitidas de segunda a sexta, das 8h às 17h, e aos sábados das 9h às 13h. Proibidas em domingos e feriados.', 54],
+        ['Art. 18', 'Animais', 'Permitidos animais de pequeno e médio porte, conduzidos com guia nas áreas comuns e transportados no elevador de serviço.', 21],
+        ['Art. 22', 'Uso das áreas comuns', 'A limpeza após o uso de salão e churrasqueira é responsabilidade do condômino reservante, sob pena de multa.', 17],
+        ['Art. 31', 'Fachada e sacadas', 'É proibido alterar a fachada, incluindo fechamento de sacadas, sem aprovação em assembleia.', 12],
+      ] },
+      { name: 'Convenção do Condomínio', meta: 'Registrada 2009 · 71 cláusulas', chunks: 164, articles: [
+        ['Cl. 9ª', 'Fração ideal e rateio', 'As despesas ordinárias são rateadas conforme a fração ideal de cada unidade.', 8],
+        ['Cl. 15ª', 'Vagas de garagem', 'As vagas são de uso exclusivo, vinculadas à unidade, vedada a locação a terceiros não condôminos.', 11],
+        ['Cl. 27ª', 'Multas', 'Infrações ao regimento sujeitam o condômino a multa de até 5 vezes a cota mensal.', 6],
+        ['Cl. 40ª', 'Assembleias', 'A assembleia ordinária ocorre anualmente para aprovação de contas e orçamento.', 4],
+      ] },
+    ];
+    const docs = docBase.map((d, i) => ({ ...d, bg: i === s.doc ? '#fff' : 'transparent', border: i === s.doc ? 'rgba(0,0,0,.1)' : 'transparent', select: () => this.setState({ doc: i, testQ: null }) }));
+    const doc = { ...docBase[s.doc], articles: docBase[s.doc].articles.map(([num, title, text, cites]) => ({ num, title, text, cites })) };
+    const qa = {
+      'Posso fechar a sacada?': { a: 'Não sem aprovação em assembleia. O fechamento de sacada conta como alteração de fachada e precisa ser votado.', cite: 'Regimento Interno · Art. 31', quote: 'proibido alterar a fachada, incluindo fechamento de sacadas, sem aprovação em assembleia', score: 'score 0.93' },
+      'Até que horas pode barulho?': { a: 'O horário de silêncio vai das 22h às 8h. Obras só de segunda a sexta (8h–17h) e sábado (9h–13h).', cite: 'Regimento Interno · Art. 12 e 14', quote: 'vedado produzir ruído que perturbe o sossego entre 22h e 8h', score: 'score 0.91' },
+      'Posso ter cachorro grande?': { a: 'O regimento permite animais de pequeno e médio porte. Para porte grande não há previsão, então eu encaminharia à síndica.', cite: 'Regimento Interno · Art. 18', quote: 'permitidos animais de pequeno e médio porte, conduzidos com guia', score: 'score 0.84' },
+    };
+    const sampleQs = Object.keys(qa).map(q => ({ label: q, ask: () => this.setState({ testQ: q }) }));
+    const testAnswer = s.testQ ? { q: s.testQ, ...qa[s.testQ], ms: '412 ms' } : false;
+
+    const residentBase = [['101A', 'Helena Barros', '+55 41 99201-1100', 'Proprietária', true, 3], ['102A', 'Ana Beatriz', '+55 41 99123-8800', 'Proprietária', true, 9], ['305A', 'Paula Ribeiro', '+55 41 98877-1290', 'Proprietária', true, 7], ['402B', 'Marina Souza', '+55 41 99655-0021', 'Inquilina', true, 4], ['607A', 'Lucia Prado', '+55 41 99444-2312', 'Proprietária', true, 2], ['708B', 'Jorge Amaral', '+55 41 99700-4411', 'Inquilino', true, 2], ['801A', 'Bruno Martins', '+55 41 98111-0909', 'Proprietário', false, 0], ['911B', 'Rafael Nunes', '+55 41 98300-7765', 'Proprietário', true, 5], ['1201A', 'Carlos Mendes', '+55 41 99812-3344', 'Proprietário', true, 12], ['1504B', 'Fernando Lima', '+55 41 99080-5566', 'Inquilino', true, 1]];
+    const residents = residentBase.map(([unit, name, phone, profile, wa, convos], i) => ({ unit, name, phone, profile, convos, initials: name.split(' ').map(w => w[0]).slice(0, 2).join(''), avatarBg: avatars[i % avatars.length], wa: wa ? 'Verificado' : 'Não vinculado', ...(wa ? T('ok') : T('grey')), waBg: wa ? tag.ok[0] : tag.grey[0], waFg: wa ? tag.ok[1] : tag.grey[1] }));
+
+    const condoFields = [['Nome', condo.name], ['Cidade', condo.city], ['Unidades', condo.units + ' · 2 blocos'], ['Número WhatsApp', '+55 41 3000-2200'], ['Zelador', 'José Carvalho · +55 41 99555-0102'], ['Horário de silêncio', '22h – 8h']].map(([label, value]) => ({ label, value }));
+    const toggleDefs = [['silence', 'Respeitar horário de silêncio', 'Fora do horário, não notifica moradores; só registra.'], ['escalate', 'Escalar quando a tool recusar', 'Recusas de reserva ou chamado vão para a fila humana.'], ['cite', 'Citar artigo em toda resposta de regimento', 'Nunca responder regra sem a fonte.'], ['photos', 'Exigir foto para chamados de infiltração', 'Pede imagem antes de abrir o protocolo.']];
+    const agentToggles = toggleDefs.map(([k, label, desc]) => ({ label, desc, bg: s.toggles[k] ? '#5a5bd9' : '#d1d1d6', knob: s.toggles[k] ? '18px' : '2px', flip: () => this.setState({ toggles: { ...s.toggles, [k]: !s.toggles[k] } }) }));
+    const M = { GET: ['#e8f8ee', '#1f7a3e'], POST: ['#eeeef8', '#4547b8'] };
+    const endpoints = [['POST', '/tools/consultar_regimento', 'RAG no regimento e convenção, retorna trecho + artigo', 812], ['GET', '/tools/comunicados?vigente=true', 'Comunicados filtrados por validade', 464], ['POST', '/tools/abrir_chamado', 'Cria chamado e devolve protocolo', 96], ['GET', '/tools/chamados/{protocolo}', 'Status e linha do tempo do chamado', 143], ['POST', '/tools/reservar_area', 'Valida conflito e antecedência; confirma ou recusa', 58], ['POST', '/tools/escalar_humano', 'Entrega a conversa à fila do síndico', 21]].map(([method, path, desc, calls]) => ({ method, path, desc, calls, bg: M[method][0], fg: M[method][1] }));
+
+    return {
+      condo, condos, condoOpen: s.condoOpen, toggleCondo: () => this.setState({ condoOpen: !s.condoOpen }), navGroups, screenTitle: titles[s.screen],
+      isDashboard: s.screen === 'dashboard', isConversas: s.screen === 'conversas', isChamados: s.screen === 'chamados', isReservas: s.screen === 'reservas', isComunicados: s.screen === 'comunicados', isRegimento: s.screen === 'regimento', isEscalonamentos: s.screen === 'escalonamentos', isMoradores: s.screen === 'moradores', isConfig: s.screen === 'config',
+      goConversas: (e) => { e.preventDefault(); this.go('conversas'); }, goEscalonamentos: (e) => { e.preventDefault(); this.go('escalonamentos'); },
+      kpis, activity, intents, escalations, escalationsTop,
+      convos, convo, messages,
+      tickets, ticketTabs, ticket, ticketOpen: !!s.ticketId, closeTicket: () => this.setState({ ticketId: null }), advanceTicket,
+      days, areas, bookingRequests, areaRules,
+      noticeTabs, notices,
+      docs, doc, sampleQs, testAnswer,
+      residents, residentCount: residents.length,
+      condoFields, agentToggles, endpoints,
+    };
+  }
+}
+</script>
+</body>
+</html>
