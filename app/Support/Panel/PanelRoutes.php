@@ -18,6 +18,7 @@ final class PanelRoutes
         'dashboard' => 'dashboard.view',
         'escalations.index' => 'escalations.operate',
         'tickets.index' => 'tickets.operate',
+        'tickets.photos.show' => 'tickets.operate',
         'reservations.index' => 'reservations.manage',
         'notices.index' => 'knowledge.manage',
         'rule-documents.index' => 'knowledge.manage',

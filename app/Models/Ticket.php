@@ -20,6 +20,8 @@ use Illuminate\Support\Str;
  * @property int $condominium_id
  * @property int $protocol_number
  * @property-read string $protocol_label
+ * @property-read string $origin_label
+ * @property-read string $unit_label
  * @property int $ticket_status_id
  * @property int $ticket_priority_id
  * @property int $ticket_origin_id
@@ -59,6 +61,37 @@ class Ticket extends Model
     protected function protocolLabel(): Attribute
     {
         return Attribute::get(fn (): string => Str::start((string) $this->protocol_number, '#'));
+    }
+
+    /**
+     * Where the ticket came from: "WhatsApp · agente" or "Painel · <user name>".
+     *
+     * @return Attribute<non-falsy-string, never>
+     */
+    protected function originLabel(): Attribute
+    {
+        return Attribute::get(function (): string {
+            if ($this->isFromWhatsapp()) {
+                return 'WhatsApp · agente';
+            }
+
+            return $this->openedBy === null ? 'Painel' : "Painel · {$this->openedBy->name}";
+        });
+    }
+
+    /**
+     * Unit label, or "Área comum" when the ticket has no unit.
+     *
+     * @return Attribute<string, never>
+     */
+    protected function unitLabel(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->unit === null ? 'Área comum' : $this->unit->label);
+    }
+
+    public function isFromWhatsapp(): bool
+    {
+        return $this->ticket_origin_id === TicketOrigin::idFor(TicketOrigin::WHATSAPP);
     }
 
     /**
