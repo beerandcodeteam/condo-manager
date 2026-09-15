@@ -36,7 +36,7 @@ test('sindico of A accessing a resident of B by url receives 404', function () {
     $this->actingAs($sindico)
         ->get("/_panel-tenancy-test/residents/{$residentOfA->id}")
         ->assertOk()
-        ->assertSee($residentOfA->name);
+        ->assertSee($residentOfA->name, false);
 });
 
 test('panel queries only return records of the user condominium', function () {

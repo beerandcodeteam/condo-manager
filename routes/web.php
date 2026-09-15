@@ -27,6 +27,7 @@ Route::middleware(['panel', 'panel.condominium:'.SetPanelCondominium::OPTIONAL])
 
 Route::middleware(['panel', 'panel.condominium'])->group(function () {
     Route::livewire('/dashboard', 'pages::dashboard')->name('dashboard')->can(PanelRoutes::gateFor('dashboard'));
+    Route::livewire('/comunicados', 'pages::notices')->name('notices.index')->can(PanelRoutes::gateFor('notices.index'));
     Route::livewire('/moradores', 'pages::residents')->name('residents.index')->can(PanelRoutes::gateFor('residents.index'));
     Route::livewire('/configuracoes', 'pages::settings')->name('settings')->can(PanelRoutes::gateFor('settings'));
 });
