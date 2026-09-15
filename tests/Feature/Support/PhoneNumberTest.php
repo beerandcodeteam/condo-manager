@@ -9,6 +9,7 @@ dataset('valid phones', [
     'us number with spaces' => ['+1 415 555 2671', '+14155552671'],
     'dotted number' => ['+55.41.3000.2200', '+554130002200'],
     'already normalized' => ['+5541998123344', '+5541998123344'],
+    'plus sign decoded as a space from a query string' => [' 5511999990000', '+5511999990000'],
 ]);
 
 dataset('invalid phones', [

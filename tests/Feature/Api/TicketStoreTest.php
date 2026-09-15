@@ -87,7 +87,7 @@ test('phone and description are required and an invalid priority responds 422', 
         ->postJson(route('api.v1.tickets_create'), ['phone' => '+5511999990000', 'description' => 'Portão', 'priority' => 'urgente'])
         ->assertUnprocessable()
         ->assertJsonPath('code', 'validation_error')
-        ->assertJsonValidationErrors(['priority']);
+        ->assertJsonValidationErrors(['priority' => 'A prioridade deve ser alta, media ou baixa.']);
 
     $this->withToken($this->token)
         ->postJson(route('api.v1.tickets_create'), ['phone' => '+5511999990000', 'description' => 'Portão', 'location' => str_repeat('a', 256)])
@@ -96,6 +96,24 @@ test('phone and description are required and an invalid priority responds 422', 
 
     expect(Ticket::query()->withoutGlobalScopes()->count())->toBe(0);
 });
+
+test('text with invalid UTF-8 bytes responds 422 validation_error and is logged as recusa', function (string $field) {
+    $this->withToken($this->token)
+        ->post(route('api.v1.tickets_create'), [
+            'phone' => '+5511999990000',
+            'description' => 'Vazamento na pia',
+            $field => "Vazamento \xFF\xFE na pia",
+        ], ['Accept' => 'application/json'])
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'validation_error')
+        ->assertJsonValidationErrors([$field]);
+
+    expect(Ticket::query()->withoutGlobalScopes()->count())->toBe(0)
+        ->and(AgentToolCall::query()->withoutGlobalScopes()->sole())
+        ->agent_tool_id->toBe(AgentTool::idFor(AgentTool::TICKETS_CREATE))
+        ->tool_call_result_id->toBe(ToolCallResult::idFor(ToolCallResult::RECUSA))
+        ->error_code->toBe('validation_error');
+})->with(['description', 'category', 'location']);
 
 test('unknown resident responds 403 resident_not_found', function () {
     Resident::factory()->inactive()->for($this->condominium)->create(['phone' => '+5511988887777']);

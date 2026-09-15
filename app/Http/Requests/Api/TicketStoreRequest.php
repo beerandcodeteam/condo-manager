@@ -53,4 +53,16 @@ class TicketStoreRequest extends FormRequest
             'photos.*' => 'foto',
         ];
     }
+
+    /**
+     * Get custom messages for validator errors; enum errors list the accepted values so the agent can retry.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'priority.in' => 'A prioridade deve ser '.TicketPriority::ALTA.', '.TicketPriority::MEDIA.' ou '.TicketPriority::BAIXA.'.',
+        ];
+    }
 }

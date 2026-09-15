@@ -20,6 +20,8 @@ class EscalationStoreRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * `numeric` rejects a JSON boolean `ticket_protocol`, which `integer` alone accepts as 1.
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
@@ -28,7 +30,7 @@ class EscalationStoreRequest extends FormRequest
             'phone' => ['required', 'string', new E164Phone],
             'reason' => ['required', 'string', Rule::exists('escalation_reasons', 'slug')],
             'summary' => ['required', 'string'],
-            'ticket_protocol' => ['nullable', 'integer'],
+            'ticket_protocol' => ['nullable', 'numeric', 'integer'],
         ];
     }
 

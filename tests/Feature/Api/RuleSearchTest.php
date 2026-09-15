@@ -74,7 +74,7 @@ test('limit defaults to 5 and is respected', function () {
         ->assertJsonCount(5, 'results');
 
     $this->withToken($this->token)
-        ->postJson(route('api.v1.rules_search'), ['query' => 'barulho', 'limit' => 2])
+        ->postJson(route('api.v1.rules_search'), ['query' => 'barulho', 'limit' => '2'])
         ->assertOk()
         ->assertJsonPath('results.*.score', [0.95, 0.9]);
 });
@@ -89,7 +89,7 @@ test('limit must be an integer between 1 and 10', function (mixed $limit) {
         ->assertJsonValidationErrors('limit');
 
     Embeddings::assertNothingGenerated();
-})->with([11, 0, 'cinco']);
+})->with([11, 0, 'cinco', 'boolean true' => true]);
 
 test('query is required and cannot be empty', function (array $payload) {
     Embeddings::fake();
@@ -107,6 +107,30 @@ test('query is required and cannot be empty', function (array $payload) {
     'blank' => [['query' => '   ']],
     'not a string' => [['query' => ['barulho']]],
 ]);
+
+test('a query longer than the maximum length responds 422 before calling the embeddings provider', function () {
+    Embeddings::fake();
+
+    $this->withToken($this->token)
+        ->postJson(route('api.v1.rules_search'), ['query' => str_repeat('a', config('condo.rag.max_query_length') + 1)])
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'validation_error')
+        ->assertJsonValidationErrors('query');
+
+    Embeddings::assertNothingGenerated();
+
+    expect(AgentToolCall::query()->withoutGlobalScopes()->sole()->error_code)->toBe('validation_error');
+});
+
+test('a query at exactly the maximum length is searched', function () {
+    Embeddings::fake([[queryEmbedding()]]);
+
+    $this->withToken($this->token)
+        ->postJson(route('api.v1.rules_search'), ['query' => str_repeat('a', config('condo.rag.max_query_length'))])
+        ->assertOk();
+
+    Embeddings::assertGenerated(fn (EmbeddingsPrompt $prompt) => mb_strlen($prompt->inputs[0]) === config('condo.rag.max_query_length'));
+});
 
 test('limit 11 logs the call as recusa with validation_error', function () {
     $this->withToken($this->token)

@@ -11,11 +11,14 @@ use App\Support\ToolCallContext;
 use Illuminate\Http\JsonResponse;
 
 /**
- * POST /api/v1/escalations — hands the conversation of the resident behind the phone over to the team.
+ * Hand-offs to the team, for the agent tool `escalar_humano`.
  */
-class EscalationStoreController extends Controller
+class EscalationController extends Controller
 {
-    public function __invoke(
+    /**
+     * POST /api/v1/escalations — hands the conversation of the resident behind the phone over to the team.
+     */
+    public function store(
         EscalationStoreRequest $request,
         ResidentResolver $residentResolver,
         EscalationService $escalationService,

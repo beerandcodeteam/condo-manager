@@ -130,6 +130,14 @@ test('each refusal creates no reservation and is logged as recusa with its code'
         fn () => ['phone' => '+5511999990000'],
         422, 'validation_error', null,
     ],
+    'boolean area and slot ids' => [
+        fn () => ['phone' => '+5511999990000', 'area_id' => true, 'slot_id' => true, 'date' => '2026-09-27'],
+        422, 'validation_error', ['errors' => ['area_id' => [], 'slot_id' => []]],
+    ],
+    'year zero date' => [
+        fn () => ['phone' => '+5511999990000', 'area_id' => $this->area->id, 'slot_id' => $this->slot->id, 'date' => '0000-01-01'],
+        422, 'validation_error', ['errors' => ['date' => []]],
+    ],
 ]);
 
 test('lists only upcoming confirmed reservations of the unit, including manual ones, with cancellable', function () {
@@ -236,3 +244,20 @@ test('cancelling a reservation of another unit, already cancelled or unknown res
     expect($otherUnitReservation->fresh()->cancelled_at)->toBeNull()
         ->and(lastToolCall()->error_code)->toBe('reservation_not_found');
 });
+
+test('cancelling with an id that is not a reservation id responds 404 reservation_not_found and is logged', function (string $reservationId) {
+    $this->withToken($this->token)
+        ->deleteJson(route('api.v1.reservations_cancel', ['reservation' => $reservationId, 'phone' => '+5511999990000']))
+        ->assertNotFound()
+        ->assertJsonPath('code', 'reservation_not_found');
+
+    expect(lastToolCall())
+        ->agent_tool_id->toBe(AgentTool::idFor(AgentTool::RESERVATIONS_CANCEL))
+        ->tool_call_result_id->toBe(ToolCallResult::idFor(ToolCallResult::RECUSA))
+        ->resident_id->toBe($this->resident->id)
+        ->http_status->toBe(404)
+        ->error_code->toBe('reservation_not_found');
+})->with([
+    'not numeric' => ['abc'],
+    'out of range' => ['9999999999999999999'],
+]);
