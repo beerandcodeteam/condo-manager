@@ -4,21 +4,35 @@
     Props:
     - title: título da página (h1 do header e <title>).
     - condominium: array{name: string, city?: string|null, units?: int} do condomínio atual.
-    - condominiums: list<array{name: string, city?: string|null, url?: string, current?: bool}> exibidos no seletor.
+    - condominiums: list<array{name: string, city?: string|null, url?: string, current?: bool}> exibidos no seletor (url recebe POST).
     - canSwitch: exibe a seta ▾ e o dropdown de condomínios.
     - newCondominiumUrl: destino de "+ Novo condomínio".
     - navigation: array<string, array{visible?: bool, badge?: int|null, href?: string, active?: bool}> por item do menu.
     - user: array{name: string, role?: string|null, condominium?: string|null} do rodapé.
+
+    Props omitidas são preenchidas por App\Support\Panel\PanelLayout a partir do usuário logado
+    e do condomínio atual.
 --}}
 @props([
     'title' => null,
     'condominium' => null,
-    'condominiums' => [],
-    'canSwitch' => false,
+    'condominiums' => null,
+    'canSwitch' => null,
     'newCondominiumUrl' => null,
-    'navigation' => [],
+    'navigation' => null,
     'user' => null,
 ])
+
+@php
+    $panelLayout = app(\App\Support\Panel\PanelLayout::class);
+
+    $condominium ??= $panelLayout->condominium();
+    $canSwitch ??= $panelLayout->canSwitch();
+    $condominiums ??= $panelLayout->condominiums();
+    $newCondominiumUrl ??= $panelLayout->newCondominiumUrl();
+    $navigation ??= $panelLayout->navigation();
+    $user ??= $panelLayout->footer();
+@endphp
 
 <!DOCTYPE html>
 <html lang="pt-BR">

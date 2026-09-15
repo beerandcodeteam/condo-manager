@@ -95,20 +95,24 @@
                     data-condominium-switcher
                 >
                     @foreach ($condominiums as $option)
-                        <a
-                            href="{{ data_get($option, 'url', '#') }}"
-                            wire:key="condominium-option-{{ $loop->index }}"
-                            @class([
-                                'flex items-center gap-2.5 rounded-control-sm px-2.5 py-2 hover:bg-tag-grey-bg',
-                                'bg-tag-grey-bg' => (bool) data_get($option, 'current', false),
-                            ])
-                        >
-                            <span class="grid size-6 shrink-0 place-items-center rounded-[7px] bg-accent text-[11px] font-semibold text-white">{{ Str::substr(Str::initials((string) data_get($option, 'name'), capitalize: true), 0, 2) }}</span>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate font-medium">{{ data_get($option, 'name') }}</span>
-                                <span class="block text-[11px] text-ink-secondary">{{ data_get($option, 'city') }}</span>
-                            </span>
-                        </a>
+                        <form method="POST" action="{{ data_get($option, 'url', '#') }}" wire:key="condominium-option-{{ $loop->index }}">
+                            @csrf
+                            <button
+                                type="submit"
+                                @if (data_get($option, 'current', false)) aria-current="true" @endif
+                                @class([
+                                    'flex w-full cursor-pointer items-center gap-2.5 rounded-control-sm px-2.5 py-2 text-left hover:bg-tag-grey-bg',
+                                    'bg-tag-grey-bg' => (bool) data_get($option, 'current', false),
+                                ])
+                                data-condominium-option
+                            >
+                                <span class="grid size-6 shrink-0 place-items-center rounded-[7px] bg-accent text-[11px] font-semibold text-white">{{ Str::substr(Str::initials((string) data_get($option, 'name'), capitalize: true), 0, 2) }}</span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate font-medium">{{ data_get($option, 'name') }}</span>
+                                    <span class="block text-[11px] text-ink-secondary">{{ data_get($option, 'city') }}</span>
+                                </span>
+                            </button>
+                        </form>
                     @endforeach
 
                     <div class="my-1 border-t border-black/7"></div>

@@ -77,6 +77,11 @@ class User extends Authenticatable
         return $this->role_id === Role::idFor(Role::ZELADOR);
     }
 
+    public function hasAnyRole(string ...$roleSlugs): bool
+    {
+        return collect($roleSlugs)->contains(fn (string $roleSlug): bool => $this->role_id === Role::idFor($roleSlug));
+    }
+
     /**
      * @return BelongsTo<Role, $this>
      */
