@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AreaAvailabilityController;
 use App\Http\Controllers\Api\AreaListController;
+use App\Http\Controllers\Api\EscalationStoreController;
 use App\Http\Controllers\Api\NoticeListController;
 use App\Http\Controllers\Api\ReservationCancelController;
 use App\Http\Controllers\Api\ReservationListController;
@@ -23,4 +24,5 @@ Route::prefix('v1')->name('api.v1.')->middleware('agent')->group(function () {
     Route::post('/reservations', ReservationStoreController::class)->name('reservations_create');
     Route::get('/reservations', ReservationListController::class)->name('reservations_list');
     Route::delete('/reservations/{reservation}', ReservationCancelController::class)->where('reservation', '[0-9]{1,18}')->name('reservations_cancel');
+    Route::post('/escalations', EscalationStoreController::class)->name('escalations_create');
 });

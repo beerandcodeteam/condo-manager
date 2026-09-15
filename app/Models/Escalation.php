@@ -62,6 +62,11 @@ class Escalation extends Model
         return $query->where($this->qualifyColumn('escalation_status_id'), '!=', EscalationStatus::idFor(EscalationStatus::RESOLVIDO));
     }
 
+    public function hasStatus(string $statusSlug): bool
+    {
+        return $this->escalation_status_id === EscalationStatus::idFor($statusSlug);
+    }
+
     /**
      * @return BelongsTo<Resident, $this>
      */

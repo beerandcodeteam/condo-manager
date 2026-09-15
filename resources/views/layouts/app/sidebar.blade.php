@@ -144,6 +144,8 @@
                         <span class="flex-1">{{ $item['label'] }}</span>
                         @if (filled($item['badge']))
                             <x-ui.count-badge>{{ $item['badge'] }}</x-ui.count-badge>
+                        @elseif ($item['key'] === 'escalations' && filled($condominiumName))
+                            <livewire:escalation-badge />
                         @endif
                     </a>
                 @endforeach

@@ -28,6 +28,7 @@ Route::middleware(['panel', 'panel.condominium:'.SetPanelCondominium::OPTIONAL])
 
 Route::middleware(['panel', 'panel.condominium'])->group(function () {
     Route::livewire('/dashboard', 'pages::dashboard')->name('dashboard')->can(PanelRoutes::gateFor('dashboard'));
+    Route::livewire('/escalonamentos', 'pages::escalations')->name('escalations.index')->can(PanelRoutes::gateFor('escalations.index'));
     Route::livewire('/chamados', 'pages::tickets')->name('tickets.index')->can(PanelRoutes::gateFor('tickets.index'));
     Route::get('/chamados/fotos/{photo}', TicketPhotoController::class)->name('tickets.photos.show')->can(PanelRoutes::gateFor('tickets.photos.show'));
     Route::livewire('/reservas', 'pages::reservations')->name('reservations.index')->can(PanelRoutes::gateFor('reservations.index'));
