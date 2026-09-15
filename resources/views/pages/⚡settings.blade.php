@@ -20,6 +20,10 @@ new #[Layout('layouts::app')] #[Title('Configurações')] class extends Componen
         @can('categories.manage')
             <livewire:settings.ticket-categories />
         @endcan
+
+        @can('reservations.manage')
+            <livewire:settings.common-areas />
+        @endcan
     </div>
 
     <div class="flex min-w-0 flex-col gap-3.5">

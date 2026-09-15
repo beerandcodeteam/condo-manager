@@ -7,6 +7,7 @@ use Carbon\CarbonImmutable;
 use Database\Factories\ReservationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,11 +31,15 @@ use Illuminate\Support\Carbon;
  * @property int|null $reservation_cancellation_origin_id
  * @property string|null $cancellation_reason
  * @property int|null $cancelled_by_user_id
+ * @property-read string $starts
+ * @property-read string $ends
+ * @property-read string $hour_range
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read CommonAreaSlot $slot
  * @property-read Resident $resident
  * @property-read Unit $unit
+ * @property-read CommonArea $area
  */
 #[Fillable(['common_area_id', 'common_area_slot_id', 'unit_id', 'resident_id', 'reservation_status_id', 'reservation_origin_id', 'created_by_user_id', 'date', 'starts_at', 'ends_at', 'cancelled_at', 'reservation_cancellation_origin_id', 'cancellation_reason', 'cancelled_by_user_id'])]
 class Reservation extends Model
@@ -75,6 +80,40 @@ class Reservation extends Model
     public function scopeUpcoming(Builder $query): Builder
     {
         return $query->whereDate($this->qualifyColumn('date'), '>=', CarbonImmutable::now(config('condo.timezone'))->toDateString());
+    }
+
+    /**
+     * Whether the reservation still holds its slot (`confirmada` and not cancelled).
+     */
+    public function isConfirmed(): bool
+    {
+        return $this->cancelled_at === null && $this->reservation_status_id === ReservationStatus::idFor(ReservationStatus::CONFIRMADA);
+    }
+
+    /**
+     * @return Attribute<string, never>
+     */
+    protected function starts(): Attribute
+    {
+        return Attribute::get(fn (): string => CommonAreaSlot::shortTime((string) $this->starts_at));
+    }
+
+    /**
+     * @return Attribute<string, never>
+     */
+    protected function ends(): Attribute
+    {
+        return Attribute::get(fn (): string => CommonAreaSlot::shortTime((string) $this->ends_at));
+    }
+
+    /**
+     * Compact hour range of the snapshot times, e.g. "19h–23h".
+     *
+     * @return Attribute<string, never>
+     */
+    protected function hourRange(): Attribute
+    {
+        return Attribute::get(fn (): string => CommonAreaSlot::formatHourRange((string) $this->starts_at, (string) $this->ends_at));
     }
 
     /**
