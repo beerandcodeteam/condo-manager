@@ -66,3 +66,27 @@ function actingInPanel(User $user, ?Condominium $condominium = null): TestCase
 
     return test()->actingAs($user);
 }
+
+/**
+ * Unit embedding whose cosine similarity to queryEmbedding() is exactly the given value.
+ *
+ * @return list<float>
+ */
+function embeddingWithSimilarity(float $similarity): array
+{
+    $embedding = array_fill(0, (int) config('condo.rag.embedding_dimensions'), 0.0);
+    $embedding[0] = $similarity;
+    $embedding[1] = sqrt(max(0.0, 1 - $similarity ** 2));
+
+    return $embedding;
+}
+
+/**
+ * Embedding of the question in rule search tests; fake it with `Embeddings::fake([[queryEmbedding()]])`.
+ *
+ * @return list<float>
+ */
+function queryEmbedding(): array
+{
+    return embeddingWithSimilarity(1.0);
+}

@@ -53,6 +53,15 @@ class RuleDocument extends Model
         return $query->where($this->qualifyColumn('document_status_id'), DocumentStatus::idFor(DocumentStatus::PUBLICADO));
     }
 
+    public function hasStatus(string ...$statusSlugs): bool
+    {
+        return in_array(
+            $this->document_status_id,
+            array_map(fn (string $statusSlug): int => DocumentStatus::idFor($statusSlug), $statusSlugs),
+            true,
+        );
+    }
+
     /**
      * @return BelongsTo<DocumentType, $this>
      */

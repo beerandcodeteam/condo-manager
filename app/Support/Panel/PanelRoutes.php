@@ -22,6 +22,7 @@ final class PanelRoutes
         'reservations.index' => 'reservations.manage',
         'notices.index' => 'knowledge.manage',
         'rule-documents.index' => 'knowledge.manage',
+        'rule-documents.download' => 'knowledge.manage',
         'residents.index' => 'residents.manage',
         'settings' => 'condominium.settings',
         'condominiums.index' => 'platform.manage',

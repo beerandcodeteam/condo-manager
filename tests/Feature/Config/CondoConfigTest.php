@@ -38,3 +38,12 @@ test('condo config exposes domain defaults', function () {
         ])
         ->and(config('condo.reservations.whatsapp_card_limit'))->toBe(10);
 });
+
+test('ai sdk generates embeddings with openai text-embedding-3-small at 1536 dimensions', function () {
+    expect(config('ai.default_for_embeddings'))->toBe('openai')
+        ->and(config('ai.providers.openai.driver'))->toBe('openai')
+        ->and(config('ai.providers.openai.models.embeddings'))->toBe([
+            'default' => 'text-embedding-3-small',
+            'dimensions' => 1536,
+        ]);
+});
