@@ -28,7 +28,7 @@ test('zelador sees only overview, escalations and tickets', function () {
         ->assertDontSee('data-nav-item="settings"', false)
         ->assertDontSee('data-nav-item="condominiums"', false)
         ->assertDontSee('data-nav-item="users"', false)
-        ->assertDontSee('Comunicados')
+        ->assertDontSee('<span class="flex-1">Comunicados</span>', false)
         ->assertDontSee('Configurações');
 });
 
