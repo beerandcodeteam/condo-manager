@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Tenancy\BelongsToCondominium;
 use Database\Factories\UnitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,6 +37,21 @@ class Unit extends Model
     protected function label(): Attribute
     {
         return Attribute::get(fn (): string => $this->block_id === null ? $this->number : $this->number.$this->block->name);
+    }
+
+    /**
+     * Order by label: numbers in numeric order, then by block name ("101A", "101B", "305A", "1201A").
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeOrderByLabel(Builder $query): Builder
+    {
+        return $query
+            ->leftJoin('blocks', 'blocks.id', '=', 'units.block_id')
+            ->select('units.*')
+            ->orderByRaw('length(units.number), units.number')
+            ->orderBy('blocks.name');
     }
 
     /**

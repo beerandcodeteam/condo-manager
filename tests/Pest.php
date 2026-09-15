@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Middleware\SetPanelCondominium;
+use App\Models\Condominium;
+use App\Models\User;
+use App\Support\Tenancy\CurrentCondominium;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +48,21 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Sign the user in to the panel of the given condominium (their own by default), as SetPanelCondominium
+ * does for HTTP requests. Needed by Livewire::test(), which bypasses the route middleware.
+ */
+function actingInPanel(User $user, ?Condominium $condominium = null): TestCase
 {
-    // ..
+    $condominium ??= $user->condominium;
+
+    if ($condominium !== null) {
+        app(CurrentCondominium::class)->set($condominium);
+
+        if ($user->isSuperAdmin()) {
+            session()->put(SetPanelCondominium::SESSION_KEY, $condominium->id);
+        }
+    }
+
+    return test()->actingAs($user);
 }

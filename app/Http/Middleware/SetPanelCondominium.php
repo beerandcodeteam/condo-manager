@@ -18,6 +18,11 @@ class SetPanelCondominium
 {
     public const SESSION_KEY = 'current_condominium_id';
 
+    /**
+     * Platform routes use the `optional` mode: the super admin may use them without a selected condominium.
+     */
+    public const OPTIONAL = 'optional';
+
     public function __construct(private CurrentCondominium $currentCondominium) {}
 
     /**
@@ -25,7 +30,7 @@ class SetPanelCondominium
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $mode = null): Response
     {
         $user = $request->user();
 
@@ -39,6 +44,10 @@ class SetPanelCondominium
 
             if ($condominium === null) {
                 $request->session()->forget(self::SESSION_KEY);
+
+                if ($mode === self::OPTIONAL) {
+                    return $next($request);
+                }
 
                 return redirect()->to(PanelRoutes::condominiumsUrl());
             }

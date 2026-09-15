@@ -21,6 +21,14 @@ class CurrentCondominium
         return $this->condominium;
     }
 
+    /**
+     * The current condominium of a tenant-bound context (panel pages resolved by SetPanelCondominium).
+     */
+    public function getOrFail(): Condominium
+    {
+        return $this->condominium ?? abort(404);
+    }
+
     public function id(): ?int
     {
         return $this->condominium?->getKey();
