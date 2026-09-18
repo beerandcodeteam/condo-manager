@@ -10,6 +10,7 @@ use App\Http\Requests\Api\TicketStoreRequest;
 use App\Http\Resources\Api\TicketDetailResource;
 use App\Http\Resources\Api\TicketResource;
 use App\Models\TicketOrigin;
+use App\Services\Integration\MediaService;
 use App\Services\Integration\ResidentResolver;
 use App\Services\Tickets\TicketService;
 use App\Support\Tenancy\CurrentCondominium;
@@ -41,11 +42,19 @@ class TicketController extends Controller
         TicketStoreRequest $request,
         TicketService $ticketService,
         CurrentCondominium $currentCondominium,
+        MediaService $mediaService,
     ): JsonResponse {
         $resident = $this->residentResolver->resolve($request->string('phone')->toString());
 
         /** @var list<UploadedFile> $photos */
         $photos = array_values($request->file('photos', []));
+
+        /** @var list<int> $mediaIds */
+        $mediaIds = array_values($request->input('media_ids', []));
+
+        // Ids de outro telefone, de outro condomínio, já anexados ou que não são imagem somem aqui:
+        // o agente não pode descobrir que existem.
+        $media = array_values($mediaService->attachable($resident->phone, $mediaIds)->all());
 
         $ticket = $ticketService->open(
             condominium: $currentCondominium->getOrFail(),
@@ -57,6 +66,7 @@ class TicketController extends Controller
             unit: $resident->unit,
             resident: $resident,
             photos: $photos,
+            media: $media,
         );
 
         $this->toolCallContext->setTicket($ticket->id);

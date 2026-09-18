@@ -33,6 +33,8 @@ class TicketStoreRequest extends FormRequest
             'priority' => ['nullable', 'string', Rule::in([TicketPriority::ALTA, TicketPriority::MEDIA, TicketPriority::BAIXA])],
             'photos' => ['nullable', 'array', 'max:'.config('condo.tickets.max_photos')],
             'photos.*' => ['file', 'mimes:'.implode(',', config('condo.tickets.photo_mimes')), 'max:'.config('condo.tickets.max_photo_kb')],
+            'media_ids' => ['nullable', 'array', 'max:'.config('condo.tickets.max_photos')],
+            'media_ids.*' => ['integer', 'min:1'],
         ];
     }
 
@@ -51,6 +53,8 @@ class TicketStoreRequest extends FormRequest
             'priority' => 'prioridade',
             'photos' => 'fotos',
             'photos.*' => 'foto',
+            'media_ids' => 'mídias',
+            'media_ids.*' => 'mídia',
         ];
     }
 

@@ -53,6 +53,16 @@ class LookupSeeder extends Seeder
                 ['slug' => 'vazio', 'name' => 'Vazio'],
                 ['slug' => 'recusa', 'name' => 'Recusa'],
             ],
+            'agent_message_roles' => [
+                ['slug' => 'morador', 'name' => 'Morador'],
+                ['slug' => 'agente', 'name' => 'Agente'],
+            ],
+            'agent_media_kinds' => [
+                ['slug' => 'imagem', 'name' => 'Imagem'],
+                ['slug' => 'audio', 'name' => 'Áudio'],
+                ['slug' => 'video', 'name' => 'Vídeo'],
+                ['slug' => 'documento', 'name' => 'Documento'],
+            ],
             'agent_tools' => $this->agentTools(),
             'document_types' => [
                 ['slug' => 'regimento', 'name' => 'Regimento interno'],

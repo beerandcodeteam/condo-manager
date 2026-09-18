@@ -4,6 +4,7 @@ namespace App\Services\Tickets;
 
 use App\Exceptions\Api\InvalidCategory;
 use App\Exceptions\TicketActionBlockedException;
+use App\Models\AgentMedia;
 use App\Models\Condominium;
 use App\Models\Resident;
 use App\Models\Ticket;
@@ -26,6 +27,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
@@ -241,6 +243,7 @@ class TicketService
      *
      * @param  int|string|null  $category  category id or slug; must be active
      * @param  list<UploadedFile>  $photos
+     * @param  list<AgentMedia>  $media  images already received over WhatsApp, attached by id
      *
      * @throws InvalidCategory
      * @throws ValidationException
@@ -256,6 +259,7 @@ class TicketService
         Resident|int|null $resident = null,
         ?User $user = null,
         array $photos = [],
+        array $media = [],
     ): Ticket {
         $description = trim($description);
         $location = filled($location) ? trim($location) : null;
@@ -284,7 +288,7 @@ class TicketService
         $storedPaths = [];
 
         try {
-            return DB::transaction(function () use ($condominium, $description, $origin, $location, $ticketCategory, $priority, $unitModel, $residentModel, $user, $photos, &$storedPaths): Ticket {
+            return DB::transaction(function () use ($condominium, $description, $origin, $location, $ticketCategory, $priority, $unitModel, $residentModel, $user, $photos, $media, &$storedPaths): Ticket {
                 $ticket = new Ticket([
                     'ticket_status_id' => TicketStatus::idFor(TicketStatus::ABERTO),
                     'ticket_priority_id' => TicketPriority::idFor($priority),
@@ -321,6 +325,37 @@ class TicketService
 
                     $ticketPhoto->condominium_id = $condominium->id;
                     $ticketPhoto->save();
+                }
+
+                // Mídia que já estava no disco: copiada para a pasta do chamado, e a linha de origem
+                // passa a apontar para ele, saindo da lista de pendentes do morador.
+                foreach ($media as $item) {
+                    $contents = Storage::disk((string) config('condo.media.disk'))->get($item->file_path);
+
+                    if ($contents === null) {
+                        throw new RuntimeException('Não foi possível ler a mídia recebida.');
+                    }
+
+                    $path = $this->photoDirectory($ticket).'/'.Str::random(40).'.'.pathinfo($item->file_path, PATHINFO_EXTENSION);
+
+                    if (! Storage::disk(self::PHOTO_DISK)->put($path, $contents)) {
+                        throw new RuntimeException('Não foi possível salvar a foto do chamado.');
+                    }
+
+                    $storedPaths[] = $path;
+
+                    $ticketPhoto = new TicketPhoto([
+                        'ticket_id' => $ticket->id,
+                        'file_path' => $path,
+                        'mime_type' => $item->mime_type,
+                        'size_bytes' => $item->size_bytes,
+                    ]);
+
+                    $ticketPhoto->condominium_id = $condominium->id;
+                    $ticketPhoto->save();
+
+                    $item->ticket_id = $ticket->id;
+                    $item->save();
                 }
 
                 return $ticket;

@@ -4,6 +4,7 @@ namespace App\Services\Integration;
 
 use App\Models\Condominium;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\NewAccessToken;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -13,11 +14,23 @@ use Laravel\Sanctum\PersonalAccessToken;
 class ApiTokenService
 {
     /**
+     * Name prefix of the ephemeral tokens minted per WhatsApp conversation. They are short-lived and
+     * numerous, so they stay out of the panel listing.
+     */
+    public const AGENT_PREFIX = 'n8n:agent:';
+
+    /**
+     * Long-lived tokens managed by hand in the panel; the ephemeral agent ones are excluded.
+     *
      * @return Collection<int, PersonalAccessToken>
      */
     public function tokens(Condominium $condominium): Collection
     {
-        return $condominium->tokens()->latest()->latest('id')->get();
+        return $condominium->tokens()
+            ->where('name', 'not like', self::AGENT_PREFIX.'%')
+            ->latest()
+            ->latest('id')
+            ->get();
     }
 
     /**
@@ -26,6 +39,19 @@ class ApiTokenService
     public function generate(Condominium $condominium, string $name): NewAccessToken
     {
         return $condominium->createToken(trim($name));
+    }
+
+    /**
+     * Mint a short-lived token for one WhatsApp conversation, used by the n8n flow after resolving the
+     * tenant from the sender's phone. It expires on its own, so it never needs to be revoked by hand.
+     */
+    public function generateForAgent(Condominium $condominium, string $phone): NewAccessToken
+    {
+        return $condominium->createToken(
+            self::AGENT_PREFIX.$phone,
+            ['*'],
+            Carbon::now()->addMinutes((int) config('condo.platform.agent_token_ttl_minutes')),
+        );
     }
 
     /**

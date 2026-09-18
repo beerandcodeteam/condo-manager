@@ -2,6 +2,7 @@
 
 use App\Exceptions\Api\ApiException;
 use App\Http\Middleware\EnsureCondominiumToken;
+use App\Http\Middleware\EnsurePlatformToken;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureValidTextInput;
 use App\Http\Middleware\LogToolCall;
@@ -40,6 +41,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('panel', [
             'auth',
             EnsureUserIsActive::class,
+        ]);
+
+        $middleware->group('platform', [
+            EnsurePlatformToken::class,
+        ]);
+
+        $middleware->group('conversation', [
+            'auth:sanctum',
+            EnsureCondominiumToken::class,
+            SetApiCondominium::class,
+            EnsureValidTextInput::class,
         ]);
 
         $middleware->group('agent', [

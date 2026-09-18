@@ -30,16 +30,16 @@ A API de tools é um conjunto de endpoints REST/JSON sob `/api/v1`, feito para s
 - consultar áreas comuns, reservar e cancelar reservas;
 - passar a conversa para a equipe humana (síndico/zelador).
 
-A integração com o WhatsApp e o LLM ficam fora do Condo Manager, no n8n. O n8n recebe a mensagem, chama o LLM com as definições de tools e executa cada tool como um HTTP Request com o token do condomínio. No sentido inverso, o painel dispara webhooks para o n8n (ex.: `escalation.answered`, `ticket.status_changed`, `ticket.resident_notified`, `reservation.cancelled`) quando a equipe age, e o n8n avisa o morador.
+A integração com o WhatsApp e o LLM ficam fora do Condo Manager, no n8n — o canal é a **WhatsApp Cloud API** oficial da Meta (ver `docs/whatsapp-cloud-api.md`). O n8n recebe a mensagem, chama o LLM com as definições de tools e executa cada tool como um HTTP Request com o token do condomínio. No sentido inverso, o painel dispara webhooks para o n8n (ex.: `escalation.answered`, `ticket.status_changed`, `ticket.resident_notified`, `reservation.cancelled`) quando a equipe age, e o n8n avisa o morador.
 
 ```mermaid
 flowchart LR
-    M[Morador<br/>WhatsApp] -->|mensagem| N[n8n]
+    M[Morador<br/>WhatsApp] -->|webhook da Meta| N[n8n]
     N -->|prompt + definições de tools| L[LLM / agente]
     L -->|tool call| N
     N -->|HTTP + Bearer token do condomínio| A[Condo Manager<br/>/api/v1]
     A -->|JSON| N
-    N -->|resposta| M
+    N -->|POST /PHONE_NUMBER_ID/messages| M
     P[Painel<br/>síndico/zelador] -.->|webhooks| N
 ```
 
@@ -1231,7 +1231,7 @@ Levantadas na simulação; exigem decisão de produto ou mudança de spec.
   - Os embeddings atuais do banco local são sintéticos (todos os artigos com score ~0,99 entre si), então a relevância não pode ser avaliada localmente.
   - No `DemoSeeder` os artigos nascem sem embedding: numa base recém-semeada, com chave válida, a busca devolve `[]` até reindexar.
   - O timeout do provedor é de 30 s.
-- **Telefone e 9º dígito.** A busca é exata em E.164. Provedores de WhatsApp costumam entregar `5541...@s.whatsapp.net`, às vezes sem o 9º dígito. O n8n deve remover o sufixo, prefixar `+`, e para celulares brasileiros com 12 dígitos (`+55` + DDD + 8 dígitos começando em 6–9) inserir o `9` após o DDD **antes** de chamar a API. É a causa mais provável de falso "não cadastrado" em produção.
+- **Telefone e 9º dígito.** A busca é exata em E.164. A Cloud API entrega o remetente em `messages[].from` (só dígitos, sem `+`), e para o Brasil costuma vir sem o 9º dígito. O n8n prefixa `+` e, para celulares brasileiros com 12 dígitos (`55` + DDD + 8 dígitos começando em 6–9), insere o `9` após o DDD **antes** de chamar a API. É a causa mais provável de falso "não cadastrado" em produção. Atenção: o `9` entra só no `phone` que vai para a API; para **responder**, vale o `wa_id` exatamente como a Meta mandou.
 - **`exists:false` não diferencia** desconhecido, inativo e outro condomínio (privacidade). Não-moradores não conseguem escalar (403).
 - **Sem idempotência** em `abrir_chamado`, `reservar_area`, `cancelar_reserva` e `escalar_humano`:
   - retry de chamado ou escalonamento duplica o item;

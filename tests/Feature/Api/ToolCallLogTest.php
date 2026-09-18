@@ -1,6 +1,9 @@
 <?php
 
 use App\Exceptions\Api\TicketNotFound;
+use App\Http\Middleware\EnsureCondominiumToken;
+use App\Http\Middleware\EnsurePlatformToken;
+use App\Http\Middleware\EnsureValidTextInput;
 use App\Http\Middleware\LogToolCall;
 use App\Models\AgentTool;
 use App\Models\AgentToolCall;
@@ -10,6 +13,7 @@ use App\Models\ToolCallResult;
 use App\Support\ToolCallContext;
 use Database\Seeders\LookupSeeder;
 use Illuminate\Routing\Route as RoutingRoute;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -109,20 +113,63 @@ test('results follow the response: vazio when marked empty, recusa with the api 
     ]);
 });
 
-test('every route named api.v1.* has a matching agent tool', function () {
+/**
+ * Rotas de infraestrutura sob api.v1.* que usam o token do condomínio mas não são tools do agente.
+ * Toda outra rota com token de condomínio precisa passar pelo LogToolCall.
+ *
+ * @var list<string>
+ */
+const NON_TOOL_ROUTES = ['buffer_append', 'buffer_flush', 'conversations_append', 'conversations_list', 'media_store'];
+
+/**
+ * @return Collection<int, RoutingRoute>
+ */
+function apiRoutesWith(string $middleware): Collection
+{
+    return collect(Route::getRoutes()->getRoutes())
+        ->filter(fn (RoutingRoute $route) => str_starts_with((string) $route->getName(), 'api.v1.'))
+        ->filter(fn (RoutingRoute $route) => in_array($middleware, Route::gatherRouteMiddleware($route), true))
+        ->values();
+}
+
+test('every logged route has a matching agent tool', function () {
     $toolSlugs = AgentTool::query()->pluck('slug');
+    $routes = apiRoutesWith(LogToolCall::class);
 
-    $apiRouteNames = collect(Route::getRoutes()->getRoutes())
-        ->map(fn (RoutingRoute $route) => $route->getName())
-        ->filter(fn (?string $name) => $name !== null && str_starts_with($name, 'api.v1.'));
+    expect($routes)->not->toBeEmpty();
 
-    expect($apiRouteNames)->not->toBeEmpty();
-
-    $apiRouteNames->each(fn (string $name) => expect($toolSlugs)->toContain(Str::after($name, 'api.v1.')));
+    // LogToolCall resolve o tool pelo nome da rota, então uma rota logada sem tool quebraria em produção.
+    $routes->each(fn (RoutingRoute $route) => expect($toolSlugs)->toContain(Str::after((string) $route->getName(), 'api.v1.')));
 });
 
-test('every api v1 route goes through the tool call log middleware', function () {
-    collect(Route::getRoutes()->getRoutes())
-        ->filter(fn (RoutingRoute $route) => str_starts_with((string) $route->getName(), 'api.v1.'))
-        ->each(fn (RoutingRoute $route) => expect(Route::gatherRouteMiddleware($route))->toContain(LogToolCall::class));
+test('every route holding a condominium token either logs tool calls or is a known non-tool route', function () {
+    $unlogged = apiRoutesWith(EnsureCondominiumToken::class)
+        ->reject(fn (RoutingRoute $route) => in_array(LogToolCall::class, Route::gatherRouteMiddleware($route), true))
+        ->map(fn (RoutingRoute $route) => Str::after((string) $route->getName(), 'api.v1.'))
+        ->sort()
+        ->values()
+        ->all();
+
+    // Uma tool nova registrada no grupo errado apareceria aqui em vez de passar batido.
+    expect($unlogged)->toBe(NON_TOOL_ROUTES);
+});
+
+test('the conversation routes carry a condominium token but stay out of the tool call log', function () {
+    foreach (['api.v1.conversations_list', 'api.v1.conversations_append'] as $name) {
+        $middleware = Route::gatherRouteMiddleware(Route::getRoutes()->getByName($name));
+
+        expect($middleware)
+            ->toContain(EnsureCondominiumToken::class)
+            ->toContain(EnsureValidTextInput::class)
+            ->not->toContain(LogToolCall::class);
+    }
+});
+
+test('the tenant resolution route is outside the agent group, so no condominium token reaches it', function () {
+    $middleware = Route::gatherRouteMiddleware(Route::getRoutes()->getByName('api.v1.auth_token'));
+
+    expect($middleware)
+        ->toContain(EnsurePlatformToken::class)
+        ->not->toContain(EnsureCondominiumToken::class)
+        ->not->toContain(LogToolCall::class);
 });

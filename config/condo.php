@@ -43,6 +43,71 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Agent Conversations
+    |--------------------------------------------------------------------------
+    |
+    | Conversation history the n8n flow reads before each turn and appends to
+    | after. The memory of the WhatsApp agent lives here, not inside n8n.
+    |
+    */
+
+    'conversations' => [
+        'default_limit' => 20,
+        'max_limit' => 100,
+        'max_content_length' => 4000,
+        'max_messages_per_request' => 10,
+
+        // Janela em que fragmentos do mesmo morador são juntados numa mensagem só. Custa essa
+        // latência em TODA resposta, inclusive de quem mandou uma mensagem única.
+        'buffer_seconds' => (int) env('CONDO_BUFFER_SECONDS', 20),
+        'buffer_ttl_seconds' => 300,
+        'buffer_max_fragments' => 20,
+
+        // Quanto tempo lembramos de um id enviado, para não reprocessar o próprio eco.
+        'echo_ttl_seconds' => 3600,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | WhatsApp Media
+    |--------------------------------------------------------------------------
+    |
+    | Media the resident sends over WhatsApp, uploaded by the n8n flow. Only
+    | `imagem` can become a ticket photo; the rest is kept for the record.
+    |
+    */
+
+    'media' => [
+        'disk' => 'local',
+        'max_kb' => [
+            'imagem' => 10240,
+            'audio' => 20480,
+            'video' => 30720,
+            'documento' => 20480,
+        ],
+        // How far back the agent may still reach for media that was never attached.
+        'pending_hours' => 24,
+        'pending_limit' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Platform Credential (n8n)
+    |--------------------------------------------------------------------------
+    |
+    | Shared secret the n8n flow uses on /api/v1/auth/resolve, the only endpoint
+    | reachable before a condominium is known. Leaving it empty disables the
+    | endpoint: every request is rejected with 401.
+    |
+    */
+
+    'platform' => [
+        'token' => env('CONDO_PLATFORM_TOKEN'),
+        'agent_token_ttl_minutes' => (int) env('CONDO_AGENT_TOKEN_TTL_MINUTES', 15),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Outgoing Webhooks
     |--------------------------------------------------------------------------
     */
