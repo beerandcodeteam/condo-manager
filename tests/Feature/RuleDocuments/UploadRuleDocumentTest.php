@@ -47,7 +47,7 @@ test('a file that is not a PDF is rejected', function () {
         ->set('uploadType', DocumentType::REGIMENTO)
         ->set('uploadTitle', 'Regimento Interno 2024')
         ->set('uploadFile', UploadedFile::fake()->create('regimento.docx', 20, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
-        ->call('upload')
+        ->call('uploadDocument')
         ->assertHasErrors(['uploadFile' => 'mimes']);
 
     expect(RuleDocument::query()->count())->toBe(0);
@@ -62,7 +62,7 @@ test('type, title and file are required and the type must be regimento or conven
         ->call('openUploadForm')
         ->set('uploadType', 'ata')
         ->set('uploadTitle', '')
-        ->call('upload')
+        ->call('uploadDocument')
         ->assertHasErrors(['uploadType' => 'in', 'uploadTitle' => 'required', 'uploadFile' => 'required']);
 
     expect(RuleDocument::query()->count())->toBe(0);
@@ -78,7 +78,7 @@ test('uploading stores the PDF, creates the document as processando and queues t
         ->set('uploadType', DocumentType::CONVENCAO)
         ->set('uploadTitle', 'Convenção 2019')
         ->set('uploadFile', fixturePdf('regimento.pdf', 'convencao.pdf'))
-        ->call('upload')
+        ->call('uploadDocument')
         ->assertHasNoErrors()
         ->assertSet('showUploadForm', false)
         ->assertDispatched('toast', type: 'success')

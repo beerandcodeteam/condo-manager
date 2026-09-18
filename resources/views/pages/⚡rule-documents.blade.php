@@ -345,7 +345,7 @@ new #[Layout('layouts::app')] #[Title('Regimento')] class extends Component
         $this->showUploadForm = true;
     }
 
-    public function upload(RuleDocumentService $ruleDocumentService): void
+    public function uploadDocument(RuleDocumentService $ruleDocumentService): void
     {
         $this->authorize('knowledge.manage');
 
@@ -667,7 +667,7 @@ new #[Layout('layouts::app')] #[Title('Regimento')] class extends Component
     </div>
 
     <x-ui.modal wire:model="showUploadForm" title="Enviar PDF">
-        <form id="rule-document-upload-form" wire:submit="upload" class="flex flex-col gap-3">
+        <form id="rule-document-upload-form" wire:submit="uploadDocument" class="flex flex-col gap-3">
             <x-ui.field label="Tipo" name="uploadType" for="rule-document-type">
                 <x-ui.select id="rule-document-type" wire:model="uploadType" required>
                     @foreach (RuleDocumentService::TYPE_LABELS as $typeSlug => $typeLabel)
@@ -687,7 +687,7 @@ new #[Layout('layouts::app')] #[Title('Regimento')] class extends Component
 
         <x-slot:footer>
             <x-ui.button variant="secondary" size="sm" x-on:click="open = false">Cancelar</x-ui.button>
-            <x-ui.button type="submit" size="sm" form="rule-document-upload-form" loading="upload">Enviar</x-ui.button>
+            <x-ui.button type="submit" size="sm" form="rule-document-upload-form" loading="uploadDocument">Enviar</x-ui.button>
         </x-slot:footer>
     </x-ui.modal>
 

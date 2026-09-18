@@ -1,7 +1,7 @@
 # WhatsApp Cloud API (Meta)
 
-O canal de WhatsApp do síndico virtual é a **Cloud API oficial da Meta**. Substituiu a Evolution API
-em setembro de 2026: não há mais container `evolution-api`, instância, QR code nem `remoteJid`.
+O canal de WhatsApp do síndico virtual é a **Cloud API oficial da Meta**: não há instância,
+QR code nem `remoteJid` — o identificador do contato é o telefone em E.164.
 
 O Condo Manager em si não fala com a Meta. Quem fala é o workflow **"Sindico"**
 (`VgR44miVaDqKVt6a`) no n8n; a API `/api/v1` continua recebendo telefone em E.164 e não sabe qual é
@@ -104,7 +104,7 @@ atende.
 ## Mídia
 
 A Cloud API não manda os bytes no webhook, manda um `media_id`. São dois passos, e por isso cada
-ramo tem um nó a mais que na Evolution:
+ramo tem um nó a mais:
 
 ```
 Tipo ──> URL <ramo>      nó oficial, Media → Download   -> { url, mime_type, … }
