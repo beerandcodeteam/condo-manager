@@ -70,6 +70,11 @@ services:
             DB_POSTGRESDB_DATABASE: '${N8N_DB_DATABASE:-n8n}'
             DB_POSTGRESDB_USER: '${DB_USERNAME}'
             DB_POSTGRESDB_PASSWORD: '${DB_PASSWORD:-secret}'
+            LANGCHAIN_TRACING_V2: 'true'
+            LANGCHAIN_ENDPOINT: '${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}'
+            LANGCHAIN_API_KEY: '${LANGSMITH_API_KEY}'
+            LANGCHAIN_PROJECT: '${LANGSMITH_PROJECT:-condo-manager-local}'
+            LANGCHAIN_CALLBACKS_BACKGROUND: 'true'
         volumes:
             - 'sail-n8n:/home/node/.n8n'
         networks:
